@@ -1,0 +1,2313 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0f1923">
+<title>КормоCRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#0f1923; --surface:#16232f; --card:#1c2e3d; --border:#253647;
+  --accent:#3ecf8e; --accent-dim:rgba(62,207,142,0.12);
+  --warn:#f5a623; --warn-dim:rgba(245,166,35,0.12);
+  --danger:#ef4444; --danger-dim:rgba(239,68,68,0.12);
+  --info:#60a5fa; --text:#e8f0f7; --muted:#7a92a6;
+  --font:'Manrope',sans-serif; --radius:14px; --radius-sm:8px;
+  --nav-h:64px; --header-h:56px;
+  --extra-bottom: 0px;
+}
+body.light {
+  --bg:#f0f4f8; --surface:#ffffff; --card:#ffffff; --border:#d1dce8;
+  --accent:#16a870; --accent-dim:rgba(22,168,112,0.1);
+  --warn:#d97706; --warn-dim:rgba(217,119,6,0.1);
+  --danger:#dc2626; --danger-dim:rgba(220,38,38,0.1);
+  --info:#2563eb; --text:#1a2e3d; --muted:#5a7a94;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font);background:var(--bg);color:var(--text);font-size:15px;line-height:1.5}
+
+/* LAYOUT */
+#app{display:flex;flex-direction:column;height:100vh}
+.top-header{height:var(--header-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:10px;flex-shrink:0;z-index:10}
+.logo{font-size:20px;font-weight:800;color:var(--accent)}
+.page-title{flex:1;font-size:14px;font-weight:600;color:var(--muted);text-align:center}
+.hdr-btn{width:36px;height:36px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.role-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;letter-spacing:.5px;text-transform:uppercase;flex-shrink:0}
+.role-badge.admin{background:var(--accent-dim);color:var(--accent)}
+.role-badge.worker{background:rgba(96,165,250,.12);color:var(--info)}
+.role-badge.manager{background:var(--warn-dim);color:var(--warn)}
+
+.pages{flex:1;overflow:hidden;position:relative}
+.page{position:absolute;inset:0;overflow-y:auto;padding:16px 16px 32px;display:none;-webkit-overflow-scrolling:touch}
+.page.active{display:block}
+
+/* TOP NAV */
+.top-nav{height:var(--nav-h);background:var(--surface);border-bottom:1px solid var(--border);display:flex;flex-shrink:0;z-index:10;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.top-nav::-webkit-scrollbar{display:none}
+.nav-item{flex:1;min-width:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;color:var(--muted);font-size:9px;font-weight:700;transition:color .15s;border:none;background:none;padding:6px 2px;font-family:var(--font);white-space:nowrap}
+.nav-item svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8}
+.nav-item.active{color:var(--accent);border-bottom:2px solid var(--accent)}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;overflow:hidden}
+.card-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.card-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+.card-body{padding:14px 16px}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.stats-row.cols3{grid-template-columns:1fr 1fr 1fr}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px 12px}
+.stat-label{font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.5px;text-transform:uppercase;margin-bottom:5px}
+.stat-value{font-size:21px;font-weight:800;color:var(--text);line-height:1}
+.stat-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.stat-card.accent{border-color:rgba(62,207,142,.3)}.stat-card.accent .stat-value{color:var(--accent)}
+.stat-card.warn{border-color:rgba(245,166,35,.3)}.stat-card.warn .stat-value{color:var(--warn)}
+.stat-card.danger{border-color:rgba(239,68,68,.3)}.stat-card.danger .stat-value{color:var(--danger)}
+
+/* LIST */
+.list-item{display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);gap:12px;cursor:pointer;transition:background .1s}
+.list-item:last-child{border-bottom:none}
+.list-item:active{background:rgba(255,255,255,.03)}
+.list-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.list-icon.green{background:var(--accent-dim)}.list-icon.warn{background:var(--warn-dim)}.list-icon.red{background:var(--danger-dim)}.list-icon.blue{background:rgba(96,165,250,.12)}.list-icon.grey{background:rgba(122,146,166,.12)}
+.list-body{flex:1;min-width:0}
+.list-name{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-sub{font-size:12px;color:var(--muted);margin-top:2px}
+.list-right{text-align:right;flex-shrink:0}
+.list-val{font-size:15px;font-weight:700}
+.list-unit{font-size:11px;color:var(--muted)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700}
+.badge-green{background:var(--accent-dim);color:var(--accent)}
+.badge-warn{background:var(--warn-dim);color:var(--warn)}
+.badge-red{background:var(--danger-dim);color:var(--danger)}
+.badge-blue{background:rgba(96,165,250,.12);color:var(--info)}
+.badge-grey{background:rgba(122,146,166,.15);color:var(--muted)}
+
+/* BUTTONS */
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;padding:14px 20px;border-radius:var(--radius);font-family:var(--font);font-size:15px;font-weight:700;cursor:pointer;border:none;transition:opacity .15s,transform .1s;width:100%}
+.btn:active{transform:scale(.97);opacity:.85}
+.btn-primary{background:var(--accent);color:#0f1923}
+.btn-secondary{background:var(--card);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:var(--danger-dim);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
+.btn-warn{background:var(--warn-dim);color:var(--warn);border:1px solid rgba(245,166,35,.3)}
+.btn-sm{padding:8px 14px;font-size:13px;border-radius:var(--radius-sm);width:auto}
+.btn-fab{position:fixed;bottom:24px;right:20px;width:56px;height:56px;border-radius:50%;background:var(--accent);color:#0f1923;font-size:26px;font-weight:700;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(62,207,142,.4);z-index:50;transition:transform .15s}
+.btn-fab:active{transform:scale(.93)}
+
+/* FORMS */
+.form-group{margin-bottom:14px}
+.form-label{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.3px;text-transform:uppercase;margin-bottom:6px;display:block}
+.form-input,.form-select,.form-textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:15px;padding:12px 14px;outline:none;transition:border-color .15s;-webkit-appearance:none}
+.form-input:focus,.form-select:focus{border-color:var(--accent)}
+.form-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a92a6' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;padding-right:36px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;width:100%;max-height:92vh;display:flex;flex-direction:column;border-top:1px solid var(--border)}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 0;flex-shrink:0}
+.modal-header{padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);flex-shrink:0}
+.modal-title{font-size:17px;font-weight:800}
+.modal-close{width:32px;height:32px;background:var(--card);border:none;border-radius:50%;color:var(--muted);font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-body{padding:16px 20px;overflow-y:auto;flex:1}
+.modal-footer{padding:12px 20px 20px;border-top:1px solid var(--border);flex-shrink:0}
+
+/* ALERTS */
+.alert{padding:12px 14px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;margin-bottom:10px;display:flex;align-items:flex-start;gap:10px}
+.alert-warn{background:var(--warn-dim);border:1px solid rgba(245,166,35,.25);color:#fcd34d}
+.alert-danger{background:var(--danger-dim);border:1px solid rgba(239,68,68,.25);color:#fca5a5}
+.alert-success{background:var(--accent-dim);border:1px solid rgba(62,207,142,.25);color:var(--accent)}
+.alert-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+
+/* TABS */
+.tabs{display:flex;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:4px;margin-bottom:16px;gap:4px}
+.tab{flex:1;padding:8px 4px;border-radius:10px;font-size:12px;font-weight:700;text-align:center;cursor:pointer;color:var(--muted);border:none;background:transparent;font-family:var(--font);transition:background .15s,color .15s}
+.tab.active{background:var(--surface);color:var(--accent);box-shadow:0 1px 4px rgba(0,0,0,.3)}
+
+/* PROGRESS */
+.batch-progress{height:4px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden}
+.batch-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+
+/* CONSUMPTION LINE */
+.consumption-line{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
+.consumption-line:last-child{border-bottom:none}
+
+/* SECTION TITLE */
+.section-title{font-size:12px;font-weight:700;color:var(--muted);letter-spacing:1px;text-transform:uppercase;margin:20px 0 10px}
+.section-title:first-child{margin-top:0}
+
+/* TOAST */
+#toast-container{position:fixed;top:calc(var(--header-h)+8px);left:16px;right:16px;z-index:200;pointer-events:none}
+.toast{padding:12px 16px;border-radius:var(--radius-sm);font-size:14px;font-weight:600;margin-bottom:8px;animation:toastIn .25s ease;pointer-events:auto}
+.toast-success{background:var(--accent);color:#0f1923}
+.toast-error{background:var(--danger);color:#fff}
+.toast-warn{background:var(--warn);color:#0f1923}
+@keyframes toastIn{from{transform:translateY(-10px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* EMPTY */
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-state .icon{font-size:40px;margin-bottom:12px}
+.empty-state p{font-size:14px}
+
+/* LOADING */
+.loading{display:flex;align-items:center;justify-content:center;padding:40px;color:var(--muted);gap:10px;font-size:14px}
+.spinner{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* RI ROW */
+.ri-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.ri-row .form-select{flex:2}.ri-row .form-input{flex:1}
+.ri-row .rm-btn{width:36px;height:36px;background:var(--danger-dim);border:1px solid rgba(239,68,68,.3);border-radius:8px;color:var(--danger);font-size:18px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+
+hr.div{border:none;border-top:1px solid var(--border);margin:14px 0}
+
+/* FILTER BAR */
+.filter-bar{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;display:flex;flex-wrap:wrap;gap:10px}
+.ff-group{display:flex;flex-direction:column;gap:4px;flex:1;min-width:130px}
+.ff-label{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.5px;text-transform:uppercase}
+.ff-select,.ff-input{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-family:var(--font);font-size:13px;padding:8px 10px;outline:none;-webkit-appearance:none;width:100%}
+.ff-select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%237a92a6' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.ff-select:focus,.ff-input:focus{border-color:var(--accent)}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+.login-logo{font-size:52px;margin-bottom:12px}
+.login-title{font-size:26px;font-weight:800;color:#fff;margin-bottom:4px;letter-spacing:-.5px}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:36px;text-align:center}
+.user-list{display:flex;flex-direction:column;gap:10px;width:100%;max-width:360px;max-height:60vh;overflow-y:auto}
+.user-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px 18px;cursor:pointer;display:flex;align-items:center;gap:14px;transition:border-color .15s,transform .1s}
+.user-card:active{transform:scale(.97)}
+.user-card.admin{border-color:rgba(62,207,142,.3)}.user-card.manager{border-color:rgba(245,166,35,.3)}.user-card.worker{border-color:rgba(96,165,250,.3)}
+.user-avatar{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.user-avatar.admin{background:var(--accent-dim)}.user-avatar.manager{background:var(--warn-dim)}.user-avatar.worker{background:rgba(96,165,250,.12)}
+.user-info{flex:1}
+.user-name{font-size:15px;font-weight:700;color:#fff}
+.user-role-label{font-size:12px;color:var(--muted)}
+
+/* PIN */
+.pin-screen{width:100%;max-width:320px;display:flex;flex-direction:column;align-items:center}
+.pin-title{font-size:18px;font-weight:800;color:#fff;margin-bottom:6px;text-align:center}
+.pin-subtitle{font-size:13px;color:var(--muted);margin-bottom:28px;text-align:center}
+.pin-dots{display:flex;gap:14px;margin-bottom:30px}
+.pin-dot{width:16px;height:16px;border-radius:50%;border:2px solid var(--border);transition:background .15s,border-color .15s}
+.pin-dot.filled{background:var(--accent);border-color:var(--accent)}
+.pin-dot.error{background:var(--danger);border-color:var(--danger)}
+.pin-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;width:100%}
+.pin-btn{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--font);font-size:22px;font-weight:700;height:64px;cursor:pointer;transition:background .1s,transform .1s;display:flex;align-items:center;justify-content:center}
+.pin-btn:active{background:var(--surface);transform:scale(.94)}
+.pin-btn.del{font-size:18px;color:var(--muted)}
+.pin-btn.empty{background:transparent;border-color:transparent;pointer-events:none}
+.pin-back-btn{margin-top:24px;background:none;border:none;color:var(--muted);font-family:var(--font);font-size:14px;cursor:pointer;text-decoration:underline}
+
+/* LOG */
+.log-item{padding:12px 16px;border-bottom:1px solid var(--border)}
+.log-item:last-child{border-bottom:none}
+.log-action{font-size:13px;font-weight:600;color:var(--text)}
+.log-meta{font-size:11px;color:var(--muted);margin-top:3px}
+
+/* DASH STOCK ROW */
+.dash-stock-row{cursor:pointer;padding:4px 2px;transition:opacity .15s}
+.dash-stock-row:active{opacity:.7}
+
+/* GREETING */
+.dash-greeting{padding:4px 0 16px;font-size:13px;color:var(--muted);font-weight:500}
+.dash-greeting b{color:var(--text)}
+
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-logo" id="login-logo">🌾</div>
+  <div class="login-title" id="login-title">КормоCRM</div>
+  <div class="login-sub" id="login-sub">Оберіть свій профіль</div>
+  <div class="user-list" id="user-list">
+    <div class="loading"><div class="spinner"></div> Завантаження...</div>
+  </div>
+  <div class="pin-screen" id="pin-screen" style="display:none">
+    <div class="pin-title" id="pin-title">Введіть PIN</div>
+    <div class="pin-subtitle" id="pin-subtitle"></div>
+    <div class="pin-dots">
+      <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-grid">
+      <button class="pin-btn" onclick="pinPress('1')">1</button>
+      <button class="pin-btn" onclick="pinPress('2')">2</button>
+      <button class="pin-btn" onclick="pinPress('3')">3</button>
+      <button class="pin-btn" onclick="pinPress('4')">4</button>
+      <button class="pin-btn" onclick="pinPress('5')">5</button>
+      <button class="pin-btn" onclick="pinPress('6')">6</button>
+      <button class="pin-btn" onclick="pinPress('7')">7</button>
+      <button class="pin-btn" onclick="pinPress('8')">8</button>
+      <button class="pin-btn" onclick="pinPress('9')">9</button>
+      <button class="pin-btn empty"></button>
+      <button class="pin-btn" onclick="pinPress('0')">0</button>
+      <button class="pin-btn del" onclick="pinDel()">⌫</button>
+    </div>
+    <button class="pin-back-btn" onclick="backToUsers()">← Назад</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <div class="top-header">
+    <span class="logo">🌾</span>
+    <span class="page-title" id="page-title">Дашборд</span>
+    <span class="role-badge" id="role-badge"></span>
+    <button class="hdr-btn" onclick="toggleTheme()" id="btn-theme">☀️</button>
+    <button class="hdr-btn" id="btn-settings" onclick="openSettings()" style="display:none">⚙️</button>
+  </div>
+
+  <!-- НАВІГАЦІЯ ЗВЕРХУ — завжди видима -->
+  <nav class="top-nav">
+    <button class="nav-item" onclick="navigate('dashboard')" id="nav-dashboard">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+      <span>Дашборд</span>
+    </button>
+    <button class="nav-item" onclick="navigate('stock')" id="nav-stock">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-6 9 6v11a1 1 0 01-1 1H4a1 1 0 01-1-1V9z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span id="nav-stock-label">Склад</span>
+    </button>
+    <button class="nav-item" onclick="navigate('production')" id="nav-production">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/></svg>
+      <span>Вир-во</span>
+    </button>
+    <button class="nav-item" onclick="navigate('recipes')" id="nav-recipes">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg>
+      <span>Рецепти</span>
+    </button>
+    <button class="nav-item" onclick="navigate('reports')" id="nav-reports">
+      <svg viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      <span>Звіти</span>
+    </button>
+    <button class="nav-item" onclick="logout()" id="nav-logout">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      <span>Вийти</span>
+    </button>
+  </nav>
+
+  <div class="pages">
+    <div class="page active" id="page-dashboard">
+      <div id="alerts-container"></div>
+      <div class="dash-greeting" id="dash-greeting"></div>
+      <div class="stats-row" id="dash-stats"></div>
+      <div class="section-title">Залишки сировини</div>
+      <div class="card" id="dash-stock"></div>
+      <div class="section-title">Прихід сьогодні</div>
+      <div class="card" id="dash-arrivals"></div>
+      <div class="section-title">Останні виробництва</div>
+      <div class="card" id="dash-recent"></div>
+    </div>
+
+    <div class="page" id="page-stock">
+      <div id="stock-list"></div>
+    </div>
+
+    <div class="page" id="page-production">
+      <div class="tabs">
+        <button class="tab active" onclick="switchProdTab('log')" id="ptab-log">Журнал</button>
+        <button class="tab" onclick="switchProdTab('new')" id="ptab-new">+ Виробництво</button>
+      </div>
+      <div id="prod-log-view"></div>
+      <div id="prod-new-view" style="display:none"></div>
+    </div>
+
+    <div class="page" id="page-recipes">
+      <div id="recipes-list"></div>
+    </div>
+
+    <div class="page" id="page-reports">
+      <div class="tabs">
+        <button class="tab active" onclick="switchReportTab('stock')" id="rtab-stock">Залишки</button>
+        <button class="tab" onclick="switchReportTab('purchase')" id="rtab-purchase">Закупки</button>
+        <button class="tab" onclick="switchReportTab('cost')" id="rtab-cost">Витрати</button>
+        <button class="tab" onclick="switchReportTab('consumption')" id="rtab-consumption">Споживання</button>
+        <button class="tab" onclick="switchReportTab('logs')" id="rtab-logs">Логи</button>
+      </div>
+      <div id="report-content"></div>
+    </div>
+  </div>
+
+  <!-- Global FABs -->
+  <button class="btn-fab" id="fab-stock"   onclick="openAddBatch()" style="display:none">+</button>
+  <button class="btn-fab" id="fab-recipes" onclick="openAddRecipe()" style="display:none">+</button>
+
+</div>
+
+<div id="modal-overlay" class="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">—</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-footer" id="modal-footer"></div>
+  </div>
+</div>
+<div id="toast-container"></div>
+
+<script>
+// ══════════════════════════════════════════
+// SUPABASE CONFIG
+// ══════════════════════════════════════════
+const SUPA_URL = 'https://serjlyivbwbmyzxagmsz.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNlcmpseWl2YndibXl6eGFnbXN6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY3ODE2OTIsImV4cCI6MjA5MjM1NzY5Mn0.u5wpqL8s5WNCV5IqH5tS3OgsjixX17Mqdh19gdnK0l0';
+
+async function supaFetch(path, options = {}) {
+  const url = `${SUPA_URL}/rest/v1/${path}`;
+  const res = await fetch(url, {
+    ...options,
+    mode: 'cors',
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': `Bearer ${SUPA_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || '',
+      'X-Client-Info': 'kormo-crm/1.0',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`Supabase error: ${res.status} ${err}`);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+const DB = {
+  async get(table, query = '') {
+    return await supaFetch(`${table}?${query}&order=id.asc`);
+  },
+  async insert(table, data) {
+    return await supaFetch(table, {
+      method: 'POST',
+      prefer: 'return=representation',
+      body: JSON.stringify(data)
+    });
+  },
+  async update(table, id, data) {
+    return await supaFetch(`${table}?id=eq.${id}`, {
+      method: 'PATCH',
+      prefer: 'return=representation',
+      body: JSON.stringify(data)
+    });
+  },
+  async delete(table, id) {
+    return await supaFetch(`${table}?id=eq.${id}`, { method: 'DELETE' });
+  },
+  async rpc(fn, params) {
+    const res = await fetch(`${SUPA_URL}/rest/v1/rpc/${fn}`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPA_KEY,
+        'Authorization': `Bearer ${SUPA_KEY}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(params)
+    });
+    return res.json();
+  }
+};
+
+// ══════════════════════════════════════════
+// GLOBAL STATE
+// ══════════════════════════════════════════
+let currentUser = null;
+let currentRole = null;
+let pinTarget   = null;
+let pinBuffer   = '';
+let _cache      = {};
+
+// Simple cache
+async function cached(key, fn, ttl = 30000) {
+  const now = Date.now();
+  if (_cache[key] && now - _cache[key].ts < ttl) return _cache[key].data;
+  const data = await fn();
+  _cache[key] = { data, ts: now };
+  return data;
+}
+function invalidate(...keys) { keys.forEach(k => delete _cache[k]); }
+
+// ══════════════════════════════════════════
+// AUDIT LOG
+// ══════════════════════════════════════════
+async function logAction(action, entity, entity_id, details = {}) {
+  if (!currentUser) return;
+  try {
+    await DB.insert('action_logs', {
+      user_id: currentUser.id,
+      user_name: currentUser.name,
+      action,
+      entity,
+      entity_id,
+      details
+    });
+    invalidate('logs');
+  } catch(e) { console.warn('Log failed:', e); }
+}
+
+// ══════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════
+const fmt    = n => Number(n).toLocaleString('uk-UA', {minimumFractionDigits:2,maximumFractionDigits:2});
+const fmtKg  = n => { const v = Number(n); return Math.abs(v) >= 1000 ? (v/1000).toFixed(2)+' т' : v.toFixed(1)+' кг'; };
+const fmtDate= s => new Date(s+'T00:00:00').toLocaleDateString('uk-UA',{day:'2-digit',month:'2-digit',year:'numeric'});
+const fmtDT  = s => new Date(s).toLocaleString('uk-UA',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+const today  = () => new Date().toISOString().slice(0,10);
+
+const ROLE_ICONS = { admin:'👑', manager:'🔧', worker:'👷' };
+const ROLE_LABELS = { admin:'Адмін', manager:'Менеджер', worker:'Працівник' };
+
+function totalRemaining(batches, mat_id) {
+  return batches.filter(b=>b.mat_id==mat_id).reduce((s,b)=>s+Number(b.qty_rem),0);
+}
+
+// ══════════════════════════════════════════
+// LOGIN / AUTH
+// ══════════════════════════════════════════
+async function loadUsers() {
+  try {
+    const users = await DB.get('users', 'is_active=eq.true&select=id,name,role');
+    renderUserList(users);
+  } catch(e) {
+    const msg = e.message || '';
+    const isTableMissing = msg.includes('42P01') || msg.includes('relation') || msg.includes('does not exist');
+    document.getElementById('user-list').innerHTML =
+      `<div class="alert alert-danger" style="flex-direction:column;gap:6px">
+        <div style="display:flex;gap:8px;align-items:flex-start">
+          <span class="alert-icon">⚠️</span>
+          <span>${isTableMissing
+            ? '<b>Таблиці не створені.</b><br>Запустіть SQL скрипт у Supabase → SQL Editor'
+            : '<b>Помилка підключення.</b><br>' + msg
+          }</span>
+        </div>
+        <button class="btn btn-secondary btn-sm" style="margin-top:8px;width:100%" onclick="loadUsers()">🔄 Спробувати знову</button>
+      </div>`;
+  }
+}
+
+function renderUserList(users) {
+  if (!users || !users.length) {
+    document.getElementById('user-list').innerHTML =
+      `<div class="empty-state"><div class="icon">👤</div><p>Немає користувачів</p></div>`;
+    return;
+  }
+  document.getElementById('user-list').innerHTML = users.map(u => `
+    <div class="user-card ${u.role}" onclick="selectUser(${u.id},'${u.name.replace(/'/g,"\\'")}','${u.role}')">
+      <div class="user-avatar ${u.role}">${ROLE_ICONS[u.role]||'👤'}</div>
+      <div class="user-info">
+        <div class="user-name">${u.name}</div>
+        <div class="user-role-label">${ROLE_LABELS[u.role]||u.role}</div>
+      </div>
+      <span style="color:var(--muted);font-size:18px">›</span>
+    </div>
+  `).join('');
+}
+
+function selectUser(id, name, role) {
+  pinTarget = { id, name, role };
+  pinBuffer = '';
+  // Ховаємо список, показуємо PIN
+  document.getElementById('login-logo').style.display = 'none';
+  document.getElementById('login-title').style.display = 'none';
+  document.getElementById('login-sub').style.display = 'none';
+  document.getElementById('user-list').style.display = 'none';
+  document.getElementById('pin-screen').style.display = 'flex';
+  document.getElementById('pin-title').textContent = `Привіт, ${name}`;
+  document.getElementById('pin-subtitle').textContent = ROLE_LABELS[role] || role;
+  updatePinDots();
+}
+
+function backToUsers() {
+  pinBuffer = '';
+  document.getElementById('pin-screen').style.display = 'none';
+  document.getElementById('login-logo').style.display = '';
+  document.getElementById('login-title').style.display = '';
+  document.getElementById('login-sub').style.display = '';
+  document.getElementById('user-list').style.display = 'flex';
+  updatePinDots();
+}
+
+function pinPress(digit) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += digit;
+  updatePinDots();
+  if (pinBuffer.length === 4) setTimeout(checkPin, 120);
+}
+
+function pinDel() {
+  pinBuffer = pinBuffer.slice(0,-1);
+  updatePinDots();
+}
+
+function updatePinDots(error) {
+  for (let i=0;i<4;i++) {
+    const d = document.getElementById('pd'+i);
+    if (!d) return;
+    d.className = 'pin-dot';
+    if (error) d.classList.add('error');
+    else if (i < pinBuffer.length) d.classList.add('filled');
+  }
+}
+
+async function checkPin() {
+  try {
+    const users = await supaFetch(`users?id=eq.${pinTarget.id}&select=id,name,role,pin_hash`);
+    const user = users && users[0];
+    if (user && user.pin_hash === pinBuffer) {
+      await loginAs(user);
+    } else {
+      updatePinDots(true);
+      pinBuffer = '';
+      if (navigator.vibrate) navigator.vibrate([80,40,80]);
+      setTimeout(() => updatePinDots(), 700);
+    }
+  } catch(e) {
+    toast('Помилка з\'єднання', 'error');
+    pinBuffer = '';
+    updatePinDots();
+  }
+}
+
+async function loginAs(user) {
+  currentUser = user;
+  currentRole = user.role;
+  sessionStorage.setItem('crm_user_id', user.id);
+
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  applyRoleUI();
+
+  await logAction('login', 'user', user.id, { role: user.role });
+  if (user.role === 'worker') {
+    navigate('production');
+  } else {
+    navigate('dashboard');
+  }
+}
+
+function applyRoleUI() {
+  const isAdm = currentRole === 'admin';
+  const isMgr = currentRole === 'manager';
+
+  document.getElementById('role-badge').textContent = ROLE_LABELS[currentRole] || currentRole;
+  document.getElementById('role-badge').className = 'role-badge ' + currentRole;
+  document.getElementById('btn-settings').style.display = isAdm ? '' : 'none';
+
+  const show = (id, val) => { const el=document.getElementById(id); if(el) el.style.display=val?'flex':'none'; };
+  show('nav-dashboard',  isAdm || isMgr);
+  show('nav-stock',      true);
+  show('nav-production', true);
+  show('nav-recipes',    true);
+  show('nav-reports',    isAdm || isMgr);
+  show('nav-logout',     true);
+
+  // Назва вкладки складу залежить від ролі
+  const stockLabel = document.getElementById('nav-stock-label');
+  if (stockLabel) stockLabel.textContent = (isAdm || isMgr) ? 'Склад' : 'Прихід';
+}
+
+async function logout() {
+  await logAction('logout', 'user', currentUser?.id);
+  currentUser = null; currentRole = null;
+  sessionStorage.removeItem('crm_user_id');
+  _cache = {};
+  pinBuffer = '';
+
+  // Показуємо екран входу
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+
+  // Скидаємо до списку користувачів
+  document.getElementById('pin-screen').style.display = 'none';
+  document.getElementById('login-logo').style.display = '';
+  document.getElementById('login-title').style.display = '';
+  document.getElementById('login-sub').style.display = '';
+  document.getElementById('user-list').style.display = 'flex';
+  updatePinDots();
+}
+
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+const PAGE_TITLES = {dashboard:'Дашборд',stock:'Склад сировини',production:'Виробництво',recipes:'Рецептури',reports:'Звіти'};
+
+function navigate(page) {
+  const adminMgr = ['dashboard','reports'];
+  if (adminMgr.includes(page) && currentRole === 'worker') {
+    toast('Доступ лише для адміністратора', 'error'); return;
+  }
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const nav = document.getElementById('nav-'+page);
+  if (nav) nav.classList.add('active');
+  document.getElementById('page-title').textContent = PAGE_TITLES[page]||'';
+
+  // Show/hide FABs
+  const fabStock   = document.getElementById('fab-stock');
+  const fabRecipes = document.getElementById('fab-recipes');
+  if (fabStock)   fabStock.style.display   = page==='stock'   ? 'flex' : 'none';
+  if (fabRecipes) fabRecipes.style.display = page==='recipes' ? 'flex' : 'none';
+
+  renderPage(page);
+}
+
+function renderPage(page) {
+  if (page==='dashboard')  renderDashboard();
+  if (page==='stock')      renderStock();
+  if (page==='production') renderProduction();
+  if (page==='recipes')    renderRecipes();
+  if (page==='reports')    { currentReportTab=currentReportTab||'stock'; renderReport(currentReportTab); }
+}
+
+// ══════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════
+async function renderDashboard() {
+  // Greeting
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? 'Доброго ранку' : hour < 17 ? 'Доброго дня' : 'Добрий вечір';
+  const greetEl = document.getElementById('dash-greeting');
+  if (greetEl) greetEl.innerHTML = `${greet}, <b>${currentUser?.name || ''}</b> 👋`;
+
+  document.getElementById('dash-stats').innerHTML = loadingHTML();
+  document.getElementById('dash-stock').innerHTML = loadingHTML();
+  document.getElementById('dash-recent').innerHTML = loadingHTML();
+
+  try {
+    const [mats, batches, orders] = await Promise.all([
+      cached('materials', () => DB.get('materials','is_active=eq.true')),
+      cached('batches',   () => DB.get('batches')),
+      cached('orders',    () => DB.get('production_orders','status=eq.confirmed&order=production_date.desc&limit=30'))
+    ]);
+    const recipes   = await cached('recipes',   () => DB.get('recipes'));
+    const locations = await cached('locations', () => DB.get('locations'));
+    const allIngs   = await cached('recipe_ings_all', () => DB.get('recipe_ingredients'));
+
+    // Alerts
+    let alertsHTML = '';
+    mats.forEach(m => {
+      const rem = totalRemaining(batches, m.id);
+      if (rem < 0) alertsHTML += alertEl('danger','🚨',`<b>${m.name}</b>: від'ємний залишок <b>${fmtKg(rem)}</b>. Оприбуткуйте партію!`);
+    });
+    document.getElementById('alerts-container').innerHTML = alertsHTML;
+
+    // Stats
+    const todayOrders = orders.filter(o=>o.production_date===today());
+    const todayQty = todayOrders.reduce((s,o)=>s+Number(o.qty),0);
+    const negCount = mats.filter(m=>totalRemaining(batches,m.id)<0).length;
+    const weekOrders = orders.filter(o=>(new Date()-new Date(o.production_date+'T00:00:00'))<7*864e5);
+    const weekCost = weekOrders.reduce((s,o)=>s+Number(o.total_cost),0);
+
+    document.getElementById('dash-stats').innerHTML = `
+      <div class="stat-card accent">
+        <div class="stat-label">Сьогодні вироблено</div>
+        <div class="stat-value">${fmtKg(todayQty)}</div>
+        <div class="stat-sub">${todayOrders.length} замовлень</div>
+      </div>
+      <div class="stat-card ${negCount>0?'danger':''}">
+        <div class="stat-label">${negCount>0?'⚠️ Нестача':'Тиждень витрат'}</div>
+        <div class="stat-value" style="font-size:${negCount>0?'22':'17'}px">${negCount>0?negCount+' поз.':fmt(weekCost)}</div>
+        <div class="stat-sub">${negCount>0?'потрібне поповнення':'грн за 7 днів'}</div>
+      </div>`;
+
+    // Avg daily consumption per material from recent orders × recipe ingredients
+    const matAvgDaily = {};
+    const uniqueDays = new Set(orders.map(o=>o.production_date)).size || 1;
+    orders.forEach(o => {
+      allIngs.filter(i=>i.recipe_id==o.recipe_id).forEach(ing => {
+        matAvgDaily[ing.mat_id] = (matAvgDaily[ing.mat_id]||0) + Number(ing.qty_per_unit)*Number(o.qty);
+      });
+    });
+    Object.keys(matAvgDaily).forEach(k => { matAvgDaily[k] /= uniqueDays; });
+
+    // Stock rows with days remaining
+    let stockHTML = '';
+    mats.forEach(m => {
+      const rem = totalRemaining(batches, m.id);
+      const isNeg = rem < 0;
+      const allQty = batches.filter(b=>b.mat_id==m.id).reduce((s,b)=>s+Math.max(0,Number(b.qty_init)),0);
+      const pct = isNeg ? 0 : Math.min(100, allQty ? rem/allQty*100 : 0);
+      const avgDaily = matAvgDaily[m.id] || 0;
+      let daysLabel = '';
+      if (isNeg) {
+        daysLabel = `<span style="font-size:11px;color:var(--danger);font-weight:700">🔴 мінус</span>`;
+      } else if (avgDaily > 0) {
+        const days = Math.round(rem / avgDaily);
+        const color = days < (m.min_stock_days||3) ? 'var(--danger)' : days < 7 ? 'var(--warn)' : 'var(--muted)';
+        daysLabel = `<span style="font-size:11px;color:${color};font-weight:600">~${days} дн.</span>`;
+      }
+      const barColor = isNeg ? 'var(--danger)' : pct < 20 ? 'var(--warn)' : 'var(--accent)';
+      stockHTML += `<div class="dash-stock-row" onclick="navigate('stock')">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+          <span style="font-size:13px;font-weight:600;color:${isNeg?'var(--danger)':'var(--text)'}">${m.name}</span>
+          <div style="display:flex;align-items:center;gap:10px">
+            ${daysLabel}
+            <span style="font-size:13px;font-weight:700;color:${isNeg?'var(--danger)':'var(--text)'}">${fmtKg(rem)}</span>
+          </div>
+        </div>
+        <div class="batch-progress">
+          <div class="batch-progress-fill" style="width:${pct}%;background:${barColor}"></div>
+        </div>
+      </div>`;
+    });
+    document.getElementById('dash-stock').innerHTML = stockHTML
+      ? `<div style="padding:14px 16px;display:flex;flex-direction:column;gap:14px">${stockHTML}</div>`
+      : emptyHTML('🌾','Немає сировини');
+
+    // Recent orders
+    let recHTML = '';
+    orders.slice(0,5).forEach(o => {
+      const r = recipes.find(x=>x.id==o.recipe_id);
+      const l = locations.find(x=>x.id==o.location_id);
+      recHTML += `<div class="list-item" onclick="viewOrder(${o.id})">
+        <div class="list-icon blue">🏭</div>
+        <div class="list-body">
+          <div class="list-name">${r?r.name:'?'}</div>
+          <div class="list-sub">${l?l.name:'?'} · ${fmtDate(o.production_date)}</div>
+        </div>
+        <div class="list-right">
+          <div class="list-val">${fmtKg(o.qty)}</div>
+          <div class="list-unit">${fmt(o.cost_per_unit)} грн/кг</div>
+        </div>
+      </div>`;
+    });
+    document.getElementById('dash-recent').innerHTML = recHTML || emptyHTML('📋','Ще немає записів');
+
+    // Today's arrivals
+    const todayBatches = batches.filter(b => b.arrival === today());
+    let arrHTML = '';
+    todayBatches.sort((a,b)=>b.id-a.id).forEach(b => {
+      const m = mats.find(x=>x.id==b.mat_id)||{name:'?'};
+      arrHTML += `<div class="list-item" onclick="editBatch(${b.id})">
+        <div class="list-icon green">📦</div>
+        <div class="list-body">
+          <div class="list-name">${m.name}</div>
+          <div class="list-sub">${b.supplier} · ${fmt(b.price)} грн/кг</div>
+        </div>
+        <div class="list-right">
+          <div class="list-val">${fmtKg(b.qty_init)}</div>
+          <div class="list-unit" style="color:var(--accent)">прийнято</div>
+        </div>
+      </div>`;
+    });
+    document.getElementById('dash-arrivals').innerHTML =
+      arrHTML || `<div class="card-body" style="color:var(--muted);font-size:13px;padding:14px 16px">Сьогодні приходу не було</div>`;
+
+  } catch(e) {
+    showError('dash-stats', e);
+    console.error(e);
+  }
+}
+
+// ══════════════════════════════════════════
+// STOCK
+// ══════════════════════════════════════════
+async function renderStock() {
+  document.getElementById('stock-list').innerHTML = loadingHTML();
+  try {
+    const [mats, batches] = await Promise.all([
+      cached('materials', () => DB.get('materials','is_active=eq.true')),
+      cached('batches',   () => DB.get('batches','order=arrival.asc'))
+    ]);
+
+    const isWorker = currentRole === 'worker';
+    let html = '';
+
+    if (isWorker) {
+      // Працівник: тільки партії прийняті СЬОГОДНІ
+      const recentBatches = [...batches]
+        .filter(b => b.arrival === today())
+        .sort((a,b) => b.id - a.id);
+
+      if (!recentBatches.length) {
+        html = `<div class="card">
+          <div class="card-header"><span class="card-title">Прихід сьогодні</span></div>
+          <div class="card-body" style="color:var(--muted);font-size:13px;text-align:center;padding:20px">
+            <div style="font-size:36px;margin-bottom:10px">📦</div>
+            Сьогодні ще не було приходу.<br>Натисніть + щоб додати партію.
+          </div>
+        </div>`;
+      } else {
+        html = `<div class="card">
+          <div class="card-header">
+            <span class="card-title">Прихід сьогодні</span>
+            <span class="badge badge-green">${recentBatches.length} партій</span>
+          </div>`;
+        recentBatches.forEach(b => {
+          const m = mats.find(x=>x.id==b.mat_id)||{name:'?'};
+          html += `<div class="list-item" onclick="editBatch(${b.id})">
+            <div class="list-icon green">📦</div>
+            <div class="list-body">
+              <div class="list-name">${m.name}</div>
+              <div class="list-sub">${b.supplier} · ${fmtDate(b.arrival)}</div>
+            </div>
+            <div class="list-right">
+              <div class="list-val">${fmtKg(b.qty_init)}</div>
+              <div class="list-unit" style="color:var(--muted)">✎ редагувати</div>
+            </div>
+          </div>`;
+        });
+        html += `</div>`;
+      }
+    } else {
+      // Адмін/менеджер: повні залишки з деталями
+      const allOrders = _cache['orders']?.data || [];
+      const allIngs   = _cache['recipe_ings_all']?.data || await DB.get('recipe_ingredients');
+      const uniqueDays = new Set(allOrders.map(o=>o.production_date)).size || 1;
+      // avg daily per material
+      const matAvg = {};
+      allOrders.forEach(o => {
+        allIngs.filter(i=>i.recipe_id==o.recipe_id).forEach(ing => {
+          matAvg[ing.mat_id] = (matAvg[ing.mat_id]||0) + Number(ing.qty_per_unit)*Number(o.qty);
+        });
+      });
+      Object.keys(matAvg).forEach(k => { matAvg[k] /= uniqueDays; });
+
+      mats.forEach(m => {
+        const mb = batches.filter(b=>b.mat_id==m.id && Math.abs(Number(b.qty_rem))>0.001);
+        const total = totalRemaining(batches, m.id);
+        const isNeg = total < 0;
+        // Пропускаємо сировину з нульовим залишком
+        if(total<=0.001 && total>=0) return;
+        const avgDaily = matAvg[m.id] || 0;
+        let daysHTML = '';
+        if (isNeg) {
+          daysHTML = `<span class="badge badge-red">мінус</span>`;
+        } else if (avgDaily > 0) {
+          const days = Math.round(total / avgDaily);
+          const cls = days < (m.min_stock_days||3) ? 'badge-red' : days < 7 ? 'badge-warn' : 'badge-grey';
+          daysHTML = `<span class="badge ${cls}">~${days} дн.</span>`;
+        }
+
+        html += `<div class="card">
+          <div class="card-header">
+            <span class="card-title">${m.name}</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              ${daysHTML}
+              <span class="badge ${isNeg?'badge-red':'badge-green'}">${fmtKg(total)}</span>
+            </div>
+          </div>`;
+
+        if (!mb.length) {
+          html += `<div class="card-body" style="color:var(--muted);font-size:13px">Немає залишків</div>`;
+        } else {
+          mb.forEach(b => {
+            const isNegB = Number(b.qty_rem) < 0;
+            const pct = isNegB ? 0 : Math.min(100, Math.round(Number(b.qty_rem)/Number(b.qty_init||1)*100));
+            html += `<div class="list-item" onclick="viewBatch(${b.id})">
+              <div class="list-body">
+                <div class="list-name" style="color:${isNegB?'var(--danger)':'var(--text)'}">${b.supplier}${isNegB?' ⚠️':''}</div>
+                <div class="list-sub">${fmtDate(b.arrival)} · ${fmt(b.price)} грн/кг</div>
+                <div class="batch-progress"><div class="batch-progress-fill" style="width:${pct}%;background:${isNegB?'var(--danger)':isNeg?'var(--warn)':'var(--accent)'}"></div></div>
+              </div>
+              <div class="list-right">
+                <div class="list-val" style="color:${isNegB?'var(--danger)':'var(--text)'}">${fmtKg(b.qty_rem)}</div>
+                <div class="list-unit">${isNegB?'мінус':pct+'%'}</div>
+              </div>
+            </div>`;
+          });
+        }
+        html += `</div>`;
+      });
+      if (!html) html = emptyHTML('📦','Немає сировини');
+    }
+
+    document.getElementById('stock-list').innerHTML = html;
+  } catch(e) { showError('stock-list', e); }
+}
+
+async function viewBatch(id) {
+  try {
+    const batches = await cached('batches', () => DB.get('batches'));
+    const b = batches.find(x=>x.id==id);
+    if (!b) return;
+    const mats = await cached('materials', () => DB.get('materials','is_active=eq.true'));
+    const m = mats.find(x=>x.id==b.mat_id) || {name:'?',unit:'кг'};
+    const pct = Math.max(0, Math.round(Number(b.qty_rem)/Number(b.qty_init||1)*100));
+    const isNeg = Number(b.qty_rem) < 0;
+
+    const adminBtns = (currentRole==='admin')
+      ? `<div style="display:flex;gap:8px">
+           <button class="btn btn-secondary" style="flex:1" onclick="editBatch(${id})">✎ Редагувати</button>
+           <button class="btn btn-danger" style="flex:1" onclick="deleteBatch(${id})">✕ Видалити</button>
+         </div>`
+      : `<button class="btn btn-secondary" onclick="editBatch(${id})">✎ Редагувати</button>`;
+
+    openModal(b.supplier, `
+      <div class="stat-card" style="margin-bottom:12px">
+        <div class="stat-label">Сировина</div>
+        <div class="stat-value" style="font-size:18px">${m.name}</div>
+      </div>
+      <div class="stats-row cols3">
+        <div class="stat-card"><div class="stat-label">Початок</div><div class="stat-value" style="font-size:16px">${fmtKg(b.qty_init)}</div></div>
+        <div class="stat-card ${isNeg?'danger':'accent'}"><div class="stat-label">Залишок</div><div class="stat-value" style="font-size:16px">${fmtKg(b.qty_rem)}</div></div>
+        <div class="stat-card"><div class="stat-label">Викор.</div><div class="stat-value" style="font-size:16px">${Math.min(100,pct)}%</div></div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Дата приходу</div><div class="stat-value" style="font-size:15px">${fmtDate(b.arrival)}</div></div>
+        <div class="stat-card"><div class="stat-label">Ціна</div><div class="stat-value" style="font-size:15px">${fmt(b.price)}</div><div class="stat-sub">грн/${m.unit}</div></div>
+      </div>
+      ${isNeg?alertEl('danger','⚠️',`Від'ємний залишок: <b>${fmtKg(b.qty_rem)}</b>`):''}
+      <div class="batch-progress" style="height:8px;margin-top:8px">
+        <div class="batch-progress-fill" style="width:${Math.min(100,pct)}%;background:${isNeg?'var(--danger)':'var(--accent)'}"></div>
+      </div>
+    `, adminBtns);
+  } catch(e) { toast('Помилка завантаження', 'error'); }
+}
+
+async function editBatch(id) {
+  const batches = await cached('batches', () => DB.get('batches'));
+  const b = batches.find(x=>x.id==id);
+  if (!b) return;
+  const mats = await cached('materials', () => DB.get('materials','is_active=eq.true'));
+  const m = mats.find(x=>x.id==b.mat_id)||{name:'?'};
+  const suppliers = [...new Set(batches.map(x=>x.supplier).filter(Boolean))].sort();
+  const isAdm = currentRole === 'admin';
+
+  const adminFields = isAdm ? `
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Ціна (грн/кг)</label>
+        <input type="number" class="form-input" id="eb-price" value="${b.price}" step="0.01" min="0"></div>
+      <div class="form-group"><label class="form-label">Залишок (кг)</label>
+        <input type="number" class="form-input" id="eb-rem" value="${b.qty_rem}" step="0.1"></div>
+    </div>
+    ${alertEl('warn','⚠️','Зміна залишку не відновлює списання виробництва')}
+  ` : `<input type="hidden" id="eb-price" value="${b.price}"><input type="hidden" id="eb-rem" value="${b.qty_rem}">`;
+
+  openModal('Редагувати партію', `
+    <div class="form-group">
+      <label class="form-label">Сировина</label>
+      <input type="text" class="form-input" id="eb-mat" value="${m.name}" list="eb-mat-list" autocomplete="off">
+      <datalist id="eb-mat-list">${mats.map(x=>`<option value="${x.name}">`).join('')}</datalist>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Постачальник</label>
+      <input type="text" class="form-input" id="eb-sup" value="${b.supplier}" list="eb-sup-list" autocomplete="off">
+      <datalist id="eb-sup-list">${suppliers.map(s=>`<option value="${s}">`).join('')}</datalist>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Дата приходу</label>
+        <input type="date" class="form-input" id="eb-date" value="${b.arrival}"></div>
+      <div class="form-group"><label class="form-label">Заг. кількість (кг)</label>
+        <input type="number" class="form-input" id="eb-init" value="${b.qty_init}" step="0.1" min="0"></div>
+    </div>
+    ${adminFields}
+  `, `
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" style="flex:1" onclick="saveBatchEdit(${id})">Зберегти</button>
+      ${isAdm ? `<button class="btn btn-danger btn-sm" onclick="deleteBatch(${id})">✕</button>` : ''}
+    </div>
+  `);
+}
+
+async function saveBatchEdit(id) {
+  const matName  = document.getElementById('eb-mat').value.trim();
+  const supplier = document.getElementById('eb-sup').value.trim();
+  const arrival  = document.getElementById('eb-date').value;
+  const price    = parseFloat(document.getElementById('eb-price').value);
+  const qty_init = parseFloat(document.getElementById('eb-init').value);
+  const qty_rem  = parseFloat(document.getElementById('eb-rem').value);
+
+  if (!matName||!supplier||!arrival||isNaN(price)||isNaN(qty_init)||isNaN(qty_rem)) {
+    toast('Заповніть всі поля','error'); return;
+  }
+
+  try {
+    // find/create material
+    let mats = await DB.get('materials','is_active=eq.true');
+    let mat = mats.find(x=>x.name.toLowerCase()===matName.toLowerCase());
+    if (!mat) {
+      const res = await DB.insert('materials',{name:matName,unit:'кг',min_stock_days:3});
+      mat = res[0];
+    }
+
+    const status = qty_rem<=0?'closed':qty_rem<qty_init?'partially_used':'open';
+    await DB.update('batches', id, { mat_id:mat.id, supplier, arrival, price, qty_init, qty_rem, status });
+
+    await logAction('edit_batch','batch', id, {supplier, price, qty_init, qty_rem});
+    invalidate('batches','materials','orders');
+    closeModal();
+    renderStock();
+    if (document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
+    toast('Партію оновлено ✓','success');
+  } catch(e) { toast('Помилка збереження','error'); console.error(e); }
+}
+
+async function deleteBatch(id) {
+  if (!confirm('Видалити цю партію?')) return;
+  try {
+    await DB.delete('batches', id);
+    await logAction('delete_batch','batch', id);
+    invalidate('batches');
+    closeModal();
+    renderStock();
+    if (document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
+    toast('Партію видалено','warn');
+  } catch(e) { toast('Помилка видалення','error'); }
+}
+
+async function openAddBatch(preselect) {
+  const mats = await cached('materials', () => DB.get('materials','is_active=eq.true'));
+  const batches = await cached('batches', () => DB.get('batches'));
+  const suppliers = [...new Set(batches.map(b=>b.supplier).filter(Boolean))].sort();
+  const preselectName = preselect ? (mats.find(m=>m.id==preselect)||{}).name||'' : '';
+
+  openModal('Нова партія сировини', `
+    <div class="form-group">
+      <label class="form-label">Сировина</label>
+      <input type="text" class="form-input" id="nb-mat" placeholder="Введіть або оберіть..." value="${preselectName}" list="nb-mat-list" autocomplete="off">
+      <datalist id="nb-mat-list">${mats.map(m=>`<option value="${m.name}">`).join('')}</datalist>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Постачальник</label>
+      <input type="text" class="form-input" id="nb-sup" placeholder="Назва постачальника" list="nb-sup-list" autocomplete="off">
+      <datalist id="nb-sup-list">${suppliers.map(s=>`<option value="${s}">`).join('')}</datalist>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Дата приходу</label>
+        <input type="date" class="form-input" id="nb-date" value="${today()}"></div>
+      <div class="form-group"><label class="form-label">Ціна (грн/кг)</label>
+        <input type="number" class="form-input" id="nb-price" placeholder="0.00" step="0.01" min="0"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Кількість (кг)</label>
+      <input type="number" class="form-input" id="nb-qty" placeholder="0" min="0"></div>
+  `, `<button class="btn btn-primary" onclick="saveBatch()">Зберегти партію</button>`);
+}
+
+async function saveBatch() {
+  const matName  = document.getElementById('nb-mat').value.trim();
+  const supplier = document.getElementById('nb-sup').value.trim();
+  const arrival  = document.getElementById('nb-date').value;
+  const price    = parseFloat(document.getElementById('nb-price').value);
+  const qty      = parseFloat(document.getElementById('nb-qty').value);
+
+  if (!matName)  { toast('Введіть назву сировини','error'); return; }
+  if (!supplier) { toast('Введіть постачальника','error'); return; }
+  if (!arrival)  { toast('Вкажіть дату','error'); return; }
+  if (!qty||qty<=0)   { toast('Кількість має бути > 0','error'); return; }
+  if (!price||price<=0){ toast('Ціна має бути > 0','error'); return; }
+
+  try {
+    let mats = await DB.get('materials','is_active=eq.true');
+    let mat = mats.find(x=>x.name.toLowerCase()===matName.toLowerCase());
+    if (!mat) {
+      const res = await DB.insert('materials',{name:matName,unit:'кг',min_stock_days:3});
+      mat = res[0];
+      toast(`Нова сировина "${matName}" додана`,'success');
+    }
+
+    const res = await DB.insert('batches',{
+      mat_id:mat.id, arrival, supplier, qty_init:qty, qty_rem:qty, price, status:'open', created_by:currentUser.id
+    });
+    await logAction('add_batch','batch', res[0].id, {matName, supplier, qty, price});
+    invalidate('batches','materials');
+    closeModal();
+    renderStock();
+    // Оновлюємо дашборд — новий прихід має одразу відобразитись
+    if (document.getElementById('page-dashboard').classList.contains('active')) renderDashboard();
+    toast('Партію додано ✓','success');
+  } catch(e) { toast('Помилка збереження','error'); console.error(e); }
+}
+
+// ══════════════════════════════════════════
+// PRODUCTION
+// ══════════════════════════════════════════
+let currentProdTab = 'log';
+
+function switchProdTab(tab) {
+  currentProdTab = tab;
+  ['log','new'].forEach(t => {
+    document.getElementById('ptab-'+t).classList.toggle('active', t===tab);
+    document.getElementById('prod-'+t+'-view').style.display = t===tab?'':'none';
+  });
+  if (tab==='log') renderProdLog();
+  if (tab==='new') renderProdNew();
+}
+
+function renderProduction() { switchProdTab(currentProdTab); }
+
+async function renderProdLog() {
+  document.getElementById('prod-log-view').innerHTML = loadingHTML();
+  try {
+    const isWorker = currentRole === 'worker';
+    const [orders, recipes, locations] = await Promise.all([
+      cached('orders', () => DB.get('production_orders','status=eq.confirmed&order=production_date.desc')),
+      cached('recipes', () => DB.get('recipes')),
+      DB.get('locations','order=name.asc')
+    ]);
+
+    // Працівник бачить лише сьогоднішні записи
+    const filtered = isWorker ? orders.filter(o => o.production_date === today()) : orders;
+
+    if (!filtered.length) {
+      document.getElementById('prod-log-view').innerHTML =
+        emptyHTML('🏭', isWorker ? 'Сьогодні виробництва ще не було' : 'Ще немає виробництв');
+      return;
+    }
+
+    let html = '<div class="card">';
+    filtered.forEach(o => {
+      const r = recipes.find(x=>x.id==o.recipe_id);
+      const l = locations.find(x=>x.id==o.location_id);
+      html += `<div class="list-item" onclick="viewOrder(${o.id})">
+        <div class="list-icon blue">🏭</div>
+        <div class="list-body">
+          <div class="list-name">${r?r.name:'?'}</div>
+          <div class="list-sub">${l?l.name:'?'} · ${fmtDate(o.production_date)}</div>
+        </div>
+        <div class="list-right">
+          <div class="list-val">${fmtKg(o.qty)}</div>
+          ${!isWorker ? `<div class="list-unit">${fmt(o.cost_per_unit)} грн/кг</div>` : ''}
+        </div>
+      </div>`;
+    });
+    html += '</div>';
+    document.getElementById('prod-log-view').innerHTML = html;
+  } catch(e) { showError('prod-log-view', e); }
+}
+
+async function renderProdNew() {
+  try {
+    const [recipes, locations] = await Promise.all([
+      cached('recipes',   () => DB.get('recipes','is_active=eq.true')),
+      DB.get('locations','is_active=eq.true&order=name.asc')  // без кешу — завжди свіжі
+    ]);
+
+    const isWorker = currentRole === 'worker';
+
+    document.getElementById('prod-new-view').innerHTML = `
+      <div class="card">
+        <div class="card-header"><span class="card-title">Нове виробництво</span></div>
+        <div class="card-body">
+          <div class="form-group"><label class="form-label">Дата</label>
+            <input type="date" class="form-input" id="np-date" value="${today()}"></div>
+          <div class="form-group"><label class="form-label">Рецептура</label>
+            <select class="form-select" id="np-recipe" onchange="updateProdCost()">
+              <option value="">— оберіть —</option>
+              ${recipes.map(r=>`<option value="${r.id}">${r.name}</option>`).join('')}
+            </select></div>
+          <div class="form-group"><label class="form-label">Пташник</label>
+            <select class="form-select" id="np-loc">
+              <option value="">— оберіть —</option>
+              ${locations.map(l=>`<option value="${l.id}">${l.name}</option>`).join('')}
+            </select></div>
+          <div class="form-group"><label class="form-label">Кількість (кг)</label>
+            <input type="number" class="form-input" id="np-qty" placeholder="0" min="0" oninput="updateProdCost()"></div>
+          ${!isWorker ? '<div id="prod-cost-preview"></div>' : '<div id="prod-cost-preview"></div>'}
+          <button class="btn btn-primary" style="margin-top:8px" onclick="confirmProduction()">✓ Підтвердити виробництво</button>
+        </div>
+      </div>`;
+  } catch(e) { showError('prod-new-view', e); }
+}
+
+async function updateProdCost() {
+  const recipe_id = +document.getElementById('np-recipe').value;
+  const qty = parseFloat(document.getElementById('np-qty').value);
+  const el = document.getElementById('prod-cost-preview');
+  if (!recipe_id||!qty||qty<=0) { el.innerHTML=''; return; }
+
+  const isWorker = currentRole === 'worker';
+
+  try {
+    const [ings, batches] = await Promise.all([
+      DB.get('recipe_ingredients', `recipe_id=eq.${recipe_id}`),
+      cached('batches', () => DB.get('batches','order=arrival.asc'))
+    ]);
+    const mats = await cached('materials', () => DB.get('materials','is_active=eq.true'));
+
+    let totalCost=0, hasShortage=false;
+    let ingLines = '';
+
+    ings.forEach(ing => {
+      const need = Number(ing.qty_per_unit)*qty;
+      const avail = totalRemaining(batches, ing.mat_id);
+      const m = mats.find(x=>x.id==ing.mat_id)||{name:'?'};
+      const openBatches = batches.filter(b=>b.mat_id==ing.mat_id&&Number(b.qty_rem)>0).sort((a,b)=>a.arrival.localeCompare(b.arrival));
+      let rem=need, cost=0;
+      openBatches.forEach(b=>{ if(rem<=0)return; const t=Math.min(Number(b.qty_rem),rem); cost+=t*Number(b.price); rem-=t; });
+      if(rem>0){ const last=batches.filter(b=>b.mat_id==ing.mat_id).sort((a,b)=>b.arrival.localeCompare(a.arrival))[0]; if(last) cost+=rem*Number(last.price); hasShortage=true; }
+      totalCost+=cost;
+
+      if (!isWorker) {
+        ingLines+=`<div class="consumption-line">
+          <span>${m.name} <span class="badge ${avail>=need?'badge-grey':'badge-warn'}">${fmtKg(need)}</span></span>
+          <span style="color:${avail>=need?'var(--text)':'var(--warn)'}">${fmt(cost)} грн${avail<need?`<br><span style="font-size:10px;color:var(--danger)">нестача ${fmtKg(need-avail)}</span>`:''}</span>
+        </div>`;
+      } else {
+        // Працівник бачить тільки назву інгредієнта і попередження — без кількостей і цін
+        if (avail < need) {
+          ingLines+=`<div class="consumption-line">
+            <span>${m.name}</span>
+            <span class="badge badge-warn">⚠️ нестача</span>
+          </div>`;
+        }
+        // якщо все ок — не показуємо нічого (працівнику не треба бачити деталі складу)
+      }
+    });
+
+    let html = '';
+    if (!isWorker) {
+      html = `<div class="card" style="margin-top:14px">
+        <div class="card-header"><span class="card-title">Розрахунок витрат</span></div>
+        ${ingLines}
+        <div style="padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+          <span style="font-weight:700">Собівартість:</span>
+          <span style="font-size:17px;font-weight:800;color:var(--accent)">${fmt(totalCost)} грн</span>
+        </div>
+      </div>`;
+    } else if (hasShortage) {
+      // Працівнику показуємо тільки попередження про нестачу
+      html = `<div class="card" style="margin-top:14px">
+        <div class="card-header"><span class="card-title">⚠️ Нестача сировини</span></div>
+        ${ingLines}
+      </div>`;
+    }
+    if(hasShortage) html+=alertEl('warn','⚠️','Є нестача — залишки підуть у <b>мінус</b>');
+    el.innerHTML=html;
+  } catch(e) { console.error(e); }
+}
+
+async function confirmProduction() {
+  const date      = document.getElementById('np-date').value;
+  const recipe_id = +document.getElementById('np-recipe').value;
+  const loc_id    = +document.getElementById('np-loc').value;
+  const qty       = parseFloat(document.getElementById('np-qty').value);
+
+  if(!date||!recipe_id||!loc_id||!qty||qty<=0){ toast('Заповніть всі поля','error'); return; }
+
+  try {
+    const [ings, allBatches] = await Promise.all([
+      DB.get('recipe_ingredients',`recipe_id=eq.${recipe_id}`),
+      DB.get('batches','order=arrival.asc')
+    ]);
+
+    const batches = JSON.parse(JSON.stringify(allBatches)); // deep copy
+    const lines=[]; let totalCost=0, hasNeg=false;
+
+    for (const ing of ings) {
+      let need = Number(ing.qty_per_unit)*qty;
+      const sorted = batches.filter(b=>b.mat_id==ing.mat_id&&Number(b.qty_rem)>0).sort((a,b)=>a.arrival.localeCompare(b.arrival));
+
+      for (const b of sorted) {
+        if(need<=0) break;
+        const take=Math.min(Number(b.qty_rem),need);
+        const cost=take*Number(b.price);
+        lines.push({mat_id:ing.mat_id,batch_id:b.id,qty:take,price:Number(b.price),cost,is_debt:false});
+        totalCost+=cost;
+        b.qty_rem=Number(b.qty_rem)-take;
+        if(b.qty_rem<=0.001) b.status='closed'; else b.status='partially_used';
+        need-=take;
+      }
+
+      if(need>0.001) {
+        hasNeg=true;
+        const lastB=allBatches.filter(b=>b.mat_id==ing.mat_id).sort((a,b)=>b.arrival.localeCompare(a.arrival))[0];
+        if(lastB){
+          const bi=batches.find(x=>x.id==lastB.id);
+          if(bi){ bi.qty_rem=Number(bi.qty_rem)-need; bi.status='partially_used'; }
+          lines.push({mat_id:ing.mat_id,batch_id:lastB.id,qty:need,price:Number(lastB.price),cost:need*Number(lastB.price),is_debt:true});
+          totalCost+=need*Number(lastB.price);
+        }
+      }
+    }
+
+    // Save order
+    const orderRes = await DB.insert('production_orders',{
+      production_date:date, recipe_id, location_id:loc_id, qty,
+      total_cost:totalCost, cost_per_unit:totalCost/qty,
+      status:'confirmed', created_by:currentUser.id
+    });
+    const orderId = orderRes[0].id;
+
+    // Save lines
+    if(lines.length) {
+      await DB.insert('consumption_lines', lines.map(l=>({...l, production_order_id:orderId})));
+    }
+
+    // Update batches
+    for(const b of batches) {
+      const orig = allBatches.find(x=>x.id==b.id);
+      if(orig && (Number(orig.qty_rem)!==Number(b.qty_rem)||orig.status!==b.status)) {
+        await DB.update('batches', b.id, {qty_rem:b.qty_rem, status:b.status});
+      }
+    }
+
+    await logAction('production','order', orderId, {recipe_id, qty, totalCost, hasNeg});
+    invalidate('batches','orders');
+
+    toast(hasNeg ? 'Збережено ⚠️ Є від\'ємний залишок!' : 'Виробництво підтверджено ✓', hasNeg?'warn':'success');
+    switchProdTab('log');
+  } catch(e) { toast('Помилка збереження','error'); console.error(e); }
+}
+
+async function viewOrder(id) {
+  try {
+    const [orders, lines, recipes, locations, mats, batches] = await Promise.all([
+      DB.get('production_orders',`id=eq.${id}`),
+      DB.get('consumption_lines',`production_order_id=eq.${id}`),
+      cached('recipes',   () => DB.get('recipes')),
+      cached('locations', () => DB.get('locations')),
+      cached('materials', () => DB.get('materials','is_active=eq.true')),
+      cached('batches',   () => DB.get('batches'))
+    ]);
+    const o=orders[0]; if(!o) return;
+    const r=recipes.find(x=>x.id==o.recipe_id);
+    const l=locations.find(x=>x.id==o.location_id);
+
+    let linesHTML='';
+    lines.forEach(ln=>{
+      const m=mats.find(x=>x.id==ln.mat_id)||{name:'?'};
+      const b=batches.find(x=>x.id==ln.batch_id);
+      linesHTML+=`<div class="consumption-line">
+        <span><span style="font-weight:600">${m.name}</span><br>
+        <span style="font-size:11px;color:var(--muted)">Пост.: ${b?b.supplier:'?'} · ${fmt(ln.price)} грн/кг${ln.is_debt?' · ⚠️ борг':''}</span></span>
+        <span style="text-align:right"><span style="font-weight:600">${fmtKg(ln.qty)}</span><br>
+        <span style="font-size:12px;color:var(--muted)">${fmt(ln.cost)} грн</span></span>
+      </div>`;
+    });
+
+    const isAdm = currentRole === 'admin';
+    const isMgr = currentRole === 'manager';
+    const showCost = isAdm || isMgr;
+
+    openModal('Деталі виробництва',`
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Дата</div><div class="stat-value" style="font-size:15px">${fmtDate(o.production_date)}</div></div>
+        <div class="stat-card accent"><div class="stat-label">Кількість</div><div class="stat-value" style="font-size:15px">${fmtKg(o.qty)}</div></div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Рецептура</div><div class="stat-value" style="font-size:13px">${r?r.name:'?'}</div></div>
+        <div class="stat-card"><div class="stat-label">Пташник</div><div class="stat-value" style="font-size:13px">${l?l.name:'?'}</div></div>
+      </div>
+      ${showCost ? `
+      <div class="section-title">Списання FIFO</div>
+      <div class="card">${linesHTML||'<div class="card-body" style="color:var(--muted)">Немає рядків</div>'}</div>
+      <div class="stats-row" style="margin-top:12px">
+        <div class="stat-card accent"><div class="stat-label">Загальна вартість</div><div class="stat-value">${fmt(o.total_cost)}</div><div class="stat-sub">грн</div></div>
+        <div class="stat-card"><div class="stat-label">Собівартість</div><div class="stat-value">${fmt(o.cost_per_unit)}</div><div class="stat-sub">грн/кг</div></div>
+      </div>` : ''}
+    `, `
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-secondary" style="flex:1" onclick="editOrder(${id})">✎ Редагувати</button>
+        ${isAdm ? `<button class="btn btn-danger btn-sm" onclick="deleteOrder(${id})">✕</button>` : ''}
+      </div>
+    `);
+  } catch(e){ toast('Помилка завантаження','error'); }
+}
+
+async function editOrder(id) {
+  try {
+    const [orders, recipes, locations] = await Promise.all([
+      DB.get('production_orders',`id=eq.${id}`),
+      DB.get('recipes','is_active=eq.true&order=name.asc'),
+      DB.get('locations','is_active=eq.true&order=name.asc')
+    ]);
+    const o = orders[0]; if (!o) return;
+    const isAdm = currentRole === 'admin';
+
+    openModal('Редагувати виробництво', `
+      <div class="form-group"><label class="form-label">Дата</label>
+        <input type="date" class="form-input" id="eo-date" value="${o.production_date}"></div>
+      <div class="form-group"><label class="form-label">Рецептура</label>
+        <select class="form-select" id="eo-recipe">
+          ${recipes.map(r=>`<option value="${r.id}" ${r.id==o.recipe_id?'selected':''}>${r.name}</option>`).join('')}
+        </select></div>
+      <div class="form-group"><label class="form-label">Пташник</label>
+        <select class="form-select" id="eo-loc">
+          ${locations.map(l=>`<option value="${l.id}" ${l.id==o.location_id?'selected':''}>${l.name}</option>`).join('')}
+        </select></div>
+      <div class="form-group"><label class="form-label">Кількість (кг)</label>
+        <input type="number" class="form-input" id="eo-qty" value="${o.qty}" step="0.1" min="0"></div>
+      ${alertEl('warn','⚠️','Редагування не перераховує FIFO списання автоматично')}
+    `, `<button class="btn btn-primary" onclick="saveOrderEdit(${id})">Зберегти</button>`);
+  } catch(e) { toast('Помилка','error'); }
+}
+
+async function saveOrderEdit(id) {
+  const date      = document.getElementById('eo-date').value;
+  const recipe_id = +document.getElementById('eo-recipe').value;
+  const loc_id    = +document.getElementById('eo-loc').value;
+  const qty       = parseFloat(document.getElementById('eo-qty').value);
+  if (!date||!recipe_id||!loc_id||!qty||qty<=0) { toast('Заповніть всі поля','error'); return; }
+  try {
+    await DB.update('production_orders', id, {
+      production_date: date, recipe_id, location_id: loc_id, qty
+    });
+    await logAction('edit_order','order', id, {date, recipe_id, loc_id, qty});
+    invalidate('orders');
+    closeModal();
+    renderProdLog();
+    toast('Виробництво оновлено ✓','success');
+  } catch(e) { toast('Помилка збереження','error'); console.error(e); }
+}
+
+async function deleteOrder(id) {
+  if(!confirm('Видалити запис виробництва?\nСировина буде повернена на склад.')) return;
+  try {
+    // Спочатку отримуємо рядки списання щоб повернути сировину
+    const lines = await DB.get('consumption_lines', `production_order_id=eq.${id}`);
+    const batches = await DB.get('batches');
+
+    // Повертаємо кожну списану кількість назад у відповідну партію
+    for (const ln of lines) {
+      const batch = batches.find(b => b.id == ln.batch_id);
+      if (!batch) continue;
+
+      const newRem = Number(batch.qty_rem) + Number(ln.qty);
+      const newStatus = newRem <= 0 ? 'closed'
+        : newRem < Number(batch.qty_init) ? 'partially_used'
+        : 'open';
+
+      await DB.update('batches', batch.id, {
+        qty_rem: newRem,
+        status: newStatus
+      });
+      // Оновлюємо локально щоб наступний рядок брав свіжі дані
+      batch.qty_rem = newRem;
+      batch.status = newStatus;
+    }
+
+    // Видаляємо рядки списання і саме замовлення
+    await supaFetch(`consumption_lines?production_order_id=eq.${id}`, { method: 'DELETE' });
+    await DB.delete('production_orders', id);
+    await logAction('delete_order', 'order', id, { lines_restored: lines.length });
+
+    invalidate('batches', 'orders');
+    closeModal();
+    renderProdLog();
+    toast(`Видалено ✓ Повернено ${lines.length} позицій на склад`, 'success');
+  } catch(e) {
+    toast('Помилка видалення: ' + e.message, 'error');
+    console.error(e);
+  }
+}
+
+// ══════════════════════════════════════════
+// RECIPES
+// ══════════════════════════════════════════
+async function renderRecipes() {
+  document.getElementById('recipes-list').innerHTML = loadingHTML();
+  try {
+    // Завжди отримуємо свіжі рецептури без кешу
+    const [recipes, ings, mats, batches] = await Promise.all([
+      DB.get('recipes','is_active=eq.true&order=name.asc'),
+      DB.get('recipe_ingredients'),
+      cached('materials',() => DB.get('materials','is_active=eq.true')),
+      cached('batches',  () => DB.get('batches'))
+    ]);
+
+    // Додатковий клієнтський фільтр на випадок затримки БД
+    const activeRecipes = recipes.filter(r => r.is_active !== false);
+
+    let html='';
+    activeRecipes.forEach(r=>{
+      const rIngs=ings.filter(i=>i.recipe_id==r.id);
+      let theoCost=0, totalWeight=0;
+      let ingHTML='';
+      rIngs.forEach(ing=>{
+        const m=mats.find(x=>x.id==ing.mat_id);
+        if(!m) return; // пропускаємо видалену сировину
+        const firstBatch=batches.filter(b=>b.mat_id==ing.mat_id&&Number(b.qty_rem)>0).sort((a,b)=>a.arrival.localeCompare(b.arrival))[0];
+        const price=firstBatch?Number(firstBatch.price):0;
+        const qty=Number(ing.qty_per_unit);
+        theoCost+=qty*price;
+        totalWeight+=qty;
+        ingHTML+=`<div class="consumption-line">
+          <span>${m.name} <span style="color:var(--muted);font-size:12px">× ${qty} кг</span></span>
+          <span style="color:var(--muted);font-size:12px">${price>0?fmt(qty*price)+' грн':'—'}</span>
+        </div>`;
+      });
+      html+=`<div class="card" style="margin-bottom:14px">
+        <div class="card-header">
+          <span style="font-size:15px;font-weight:700">${r.name}</span>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm" onclick="editRecipe(${r.id})">✎</button>
+            ${currentRole==='admin'?`<button class="btn btn-danger btn-sm" onclick="deleteRecipe(${r.id})">✕</button>`:''}
+          </div>
+        </div>
+        ${ingHTML||`<div class="card-body" style="color:var(--muted);font-size:13px">Немає інгредієнтів</div>`}
+        <div style="padding:10px 16px;border-top:1px solid var(--border)">
+          <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+            <span style="font-size:12px;color:var(--muted)">Загальна вага рецепту</span>
+            <span style="font-weight:700">${totalWeight.toFixed(3)} кг/кг</span>
+          </div>
+          <div style="display:flex;justify-content:space-between">
+            <span style="font-size:12px;color:var(--muted)">Теор. собів. / кг продукту</span>
+            <span style="font-weight:800;color:var(--accent)">${theoCost>0?fmt(theoCost)+' грн':'—'}</span>
+          </div>
+        </div>
+      </div>`;
+    });
+    document.getElementById('recipes-list').innerHTML = html||emptyHTML('📋','Немає рецептур');
+  } catch(e){ showError('recipes-list',e); }
+}
+
+async function openAddRecipe(editId) {
+  const mats = await cached('materials',()=>DB.get('materials','is_active=eq.true'));
+  let existingIngs=[];
+  if(editId) existingIngs = await DB.get('recipe_ingredients',`recipe_id=eq.${editId}`);
+  const ings = existingIngs.length ? existingIngs.map(i=>({mat_id:i.mat_id,qty:i.qty_per_unit})) : [{mat_id:mats[0]?.id,qty:0}];
+
+  function ingRow(ing,i){
+    return `<div class="ri-row" id="ri-${i}">
+      <select class="form-select" id="ri-mat-${i}" onchange="updateRecipeTotal()">${mats.map(m=>`<option value="${m.id}" ${m.id==ing.mat_id?'selected':''}>${m.name}</option>`).join('')}</select>
+      <input type="number" class="form-input" id="ri-qty-${i}" value="${ing.qty}" placeholder="кг" step="0.001" min="0" oninput="updateRecipeTotal()">
+      <button class="rm-btn" onclick="this.closest('.ri-row').remove();updateRecipeTotal()">−</button>
+    </div>`;
+  }
+
+  let existingRecipe=null;
+  if(editId){ const res=await DB.get('recipes',`id=eq.${editId}`); existingRecipe=res[0]; }
+
+  openModal(editId?'Редагувати рецептуру':'Нова рецептура',`
+    <div class="form-group"><label class="form-label">Назва</label>
+      <input type="text" class="form-input" id="nr-name" value="${existingRecipe?existingRecipe.name:''}" placeholder="Комбікорм ..."></div>
+    <div class="section-title">Інгредієнти (на 1 кг готового)</div>
+    <div id="ing-rows">${ings.map((ing,i)=>ingRow(ing,i)).join('')}</div>
+    <button class="btn btn-secondary" style="margin-top:10px;margin-bottom:14px" onclick="addIngRow()">+ Додати інгредієнт</button>
+    <div style="background:var(--surface);border-radius:var(--radius-sm);padding:12px 14px;border:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:var(--muted);font-weight:600">Загальна вага рецепту:</span>
+        <span id="recipe-total-weight" style="font-size:16px;font-weight:800;color:var(--accent)">0.000 кг</span>
+      </div>
+    </div>
+    <input type="hidden" id="nr-edit-id" value="${editId||''}">
+  `,`<button class="btn btn-primary" onclick="saveRecipe()">Зберегти рецептуру</button>`);
+
+  updateRecipeTotal();
+}
+
+function updateRecipeTotal() {
+  let total = 0;
+  document.querySelectorAll('#ing-rows .ri-row').forEach(row => {
+    const qtyEl = row.querySelector('[id^="ri-qty-"]');
+    if (qtyEl) total += parseFloat(qtyEl.value) || 0;
+  });
+  const el = document.getElementById('recipe-total-weight');
+  if (el) {
+    el.textContent = total.toFixed(3) + ' кг';
+    el.style.color = Math.abs(total - 1) < 0.001 ? 'var(--accent)' : total > 1 ? 'var(--danger)' : 'var(--warn)';
+  }
+}
+
+function editRecipe(id){ openAddRecipe(id); }
+
+function addIngRow(){
+  const mats_cache = _cache['materials']?.data||[];
+  const idx=document.querySelectorAll('#ing-rows .ri-row').length;
+  const div=document.createElement('div');
+  div.className='ri-row'; div.id=`ri-${idx}`;
+  div.innerHTML=`<select class="form-select" id="ri-mat-${idx}" onchange="updateRecipeTotal()">${mats_cache.map(m=>`<option value="${m.id}">${m.name}</option>`).join('')}</select>
+    <input type="number" class="form-input" id="ri-qty-${idx}" placeholder="кг" step="0.001" min="0" oninput="updateRecipeTotal()">
+    <button class="rm-btn" onclick="this.closest('.ri-row').remove();updateRecipeTotal()">−</button>`;
+  document.getElementById('ing-rows').appendChild(div);
+  updateRecipeTotal();
+}
+
+async function saveRecipe(){
+  const name=(document.getElementById('nr-name').value||'').trim();
+  if(!name){toast('Введіть назву','error');return;}
+  const editId=document.getElementById('nr-edit-id').value;
+
+  const ings=[];
+  document.querySelectorAll('#ing-rows .ri-row').forEach(row=>{
+    const matEl=row.querySelector('[id^="ri-mat-"]');
+    const qtyEl=row.querySelector('[id^="ri-qty-"]');
+    if(matEl&&qtyEl&&parseFloat(qtyEl.value)>0) ings.push({mat_id:+matEl.value,qty_per_unit:parseFloat(qtyEl.value)});
+  });
+  if(!ings.length){toast('Додайте хоча б один інгредієнт','error');return;}
+
+  try{
+    let recipeId;
+    if(editId){
+      await DB.update('recipes',editId,{name});
+      await supaFetch(`recipe_ingredients?recipe_id=eq.${editId}`,{method:'DELETE'});
+      recipeId=editId;
+    } else {
+      const res=await DB.insert('recipes',{name});
+      recipeId=res[0].id;
+    }
+    await DB.insert('recipe_ingredients', ings.map(i=>({...i,recipe_id:recipeId})));
+    await logAction(editId?'edit_recipe':'add_recipe','recipe',recipeId,{name});
+    invalidate('recipes');
+    closeModal(); renderRecipes();
+    toast(editId?'Рецептуру оновлено ✓':'Рецептуру додано ✓','success');
+  }catch(e){toast('Помилка збереження','error');console.error(e);}
+}
+
+async function deleteRecipe(id){
+  if(!confirm('Видалити рецептуру?'))return;
+  try{
+    // Оновлюємо в БД
+    const result = await supaFetch(`recipes?id=eq.${id}`, {
+      method: 'PATCH',
+      prefer: 'return=representation',
+      body: JSON.stringify({is_active: false})
+    });
+    console.log('deleteRecipe result:', result);
+    await logAction('delete_recipe','recipe',id);
+    invalidate('recipes','recipe_ings_all');
+    closeModal();
+    await renderRecipes();
+    toast('Видалено ✓','warn');
+  }catch(e){
+    toast('Помилка видалення: '+e.message,'error');
+    console.error('deleteRecipe error:', e);
+  }
+}
+
+// ══════════════════════════════════════════
+// REPORTS
+// ══════════════════════════════════════════
+let currentReportTab='stock';
+const rFilters={stock:{},purchase:{sort:'date_desc'},cost:{sort:'date_desc'}};
+
+function switchReportTab(tab){
+  currentReportTab=tab;
+  ['stock','purchase','cost','consumption','logs'].forEach(t=>{
+    const el=document.getElementById('rtab-'+t);
+    if(el) el.classList.toggle('active',t===tab);
+  });
+  renderReport(tab);
+}
+
+async function renderReport(tab){
+  const el=document.getElementById('report-content');
+  el.innerHTML=loadingHTML();
+  try{
+    if(tab==='stock')       el.innerHTML=await reportStock();
+    if(tab==='purchase')    el.innerHTML=await reportPurchase();
+    if(tab==='cost')        el.innerHTML=await reportCost();
+    if(tab==='consumption') el.innerHTML=await reportConsumption();
+    if(tab==='logs')        el.innerHTML=await reportLogs();
+  }catch(e){ el.innerHTML=errorHTML(e); }
+}
+
+async function reportStock(){
+  const f=rFilters.stock;
+  const [mats,batches]=await Promise.all([
+    cached('materials',()=>DB.get('materials','is_active=eq.true')),
+    cached('batches',  ()=>DB.get('batches','order=arrival.asc'))
+  ]);
+  const matOpts=mats.map(m=>`<option value="${m.id}" ${f.mat_id==m.id?'selected':''}>${m.name}</option>`).join('');
+  let html=`<div class="filter-bar">
+    <div class="ff-group"><label class="ff-label">Сировина</label>
+      <select class="ff-select" onchange="rFilters.stock.mat_id=this.value;renderReport('stock')">
+        <option value="">Всі</option>${matOpts}</select></div>
+    <div class="ff-group"><label class="ff-label">Сортування</label>
+      <select class="ff-select" onchange="rFilters.stock.sort=this.value;renderReport('stock')">
+        <option value="name_asc" ${(f.sort||'name_asc')==='name_asc'?'selected':''}>Назва А→Я</option>
+        <option value="stock_desc" ${f.sort==='stock_desc'?'selected':''}>Залишок ↓</option>
+        <option value="stock_asc"  ${f.sort==='stock_asc'?'selected':''}>Залишок ↑</option>
+      </select></div>
+  </div>`;
+
+  let filtered=[...mats];
+  if(f.mat_id) filtered=filtered.filter(m=>m.id==f.mat_id);
+  if((f.sort||'name_asc')==='name_asc') filtered.sort((a,b)=>a.name.localeCompare(b.name));
+  else if(f.sort==='stock_desc') filtered.sort((a,b)=>totalRemaining(batches,b.id)-totalRemaining(batches,a.id));
+  else if(f.sort==='stock_asc')  filtered.sort((a,b)=>totalRemaining(batches,a.id)-totalRemaining(batches,b.id));
+
+  filtered.forEach(m=>{
+    const total=totalRemaining(batches,m.id);
+    // Пропускаємо сировину з нульовим залишком (повністю витрачена)
+    if(total<=0.001 && total>=0) return;
+    const isNeg=total<0;
+    // Показуємо тільки партії з ненульовим залишком (або від'ємні)
+    const mb=batches.filter(b=>b.mat_id==m.id && (Number(b.qty_rem)<-0.001 || Number(b.qty_rem)>0.001));
+    html+=`<div class="card" style="margin-bottom:12px">
+      <div class="card-header"><span style="font-weight:700">${m.name}</span>
+        <span class="badge ${isNeg?'badge-red':'badge-green'}">${fmtKg(total)}</span></div>`;
+    mb.forEach(b=>{
+      const isNegB=Number(b.qty_rem)<0;
+      html+=`<div class="list-item" style="cursor:default">
+        <div class="list-body"><div class="list-name" style="color:${isNegB?'var(--danger)':'var(--text)'}">${b.supplier}${isNegB?' ⚠️':''}</div>
+          <div class="list-sub">${fmtDate(b.arrival)} · ${fmt(b.price)} грн/кг</div></div>
+        <div class="list-right"><div class="list-val" style="color:${isNegB?'var(--danger)':'var(--text)'}">${fmtKg(b.qty_rem)}</div>
+          <div class="list-unit"><span class="badge ${isNegB?'badge-red':b.status==='open'?'badge-green':'badge-warn'}">${isNegB?'Мінус':b.status==='open'?'Відкрита':'Часткова'}</span></div></div>
+      </div>`;
+    });
+    html+=`<div style="padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between">
+      <span style="font-size:12px;color:var(--muted)">Загальний залишок</span>
+      <span style="font-weight:700;color:${isNeg?'var(--danger)':'var(--accent)'}">${fmtKg(total)}</span>
+    </div></div>`;
+  });
+  if(!html.includes('class="card"')) html += emptyHTML('📦','Всі запаси на складі вичерпані');
+  return html;
+}
+
+async function reportPurchase(){
+  const f=rFilters.purchase;
+  const [mats,batches]=await Promise.all([
+    cached('materials',()=>DB.get('materials','is_active=eq.true')),
+    cached('batches',  ()=>DB.get('batches'))
+  ]);
+  const validBatches=batches.filter(b=>b.supplier!=='[Борг]');
+  const suppliers=[...new Set(validBatches.map(b=>b.supplier).filter(Boolean))].sort();
+  const matOpts=mats.map(m=>`<option value="${m.id}" ${f.mat_id==m.id?'selected':''}>${m.name}</option>`).join('');
+  const supOpts=suppliers.map(s=>`<option value="${s}" ${f.supplier===s?'selected':''}>${s}</option>`).join('');
+
+  let html=`<div class="filter-bar">
+    <div class="ff-group"><label class="ff-label">Сировина</label>
+      <select class="ff-select" onchange="rFilters.purchase.mat_id=this.value;renderReport('purchase')"><option value="">Всі</option>${matOpts}</select></div>
+    <div class="ff-group"><label class="ff-label">Постачальник</label>
+      <select class="ff-select" onchange="rFilters.purchase.supplier=this.value;renderReport('purchase')"><option value="">Всі</option>${supOpts}</select></div>
+    <div class="ff-group"><label class="ff-label">Від</label>
+      <input type="date" class="ff-input" value="${f.date_from||''}" onchange="rFilters.purchase.date_from=this.value;renderReport('purchase')"></div>
+    <div class="ff-group"><label class="ff-label">До</label>
+      <input type="date" class="ff-input" value="${f.date_to||''}" onchange="rFilters.purchase.date_to=this.value;renderReport('purchase')"></div>
+  </div>`;
+
+  let filtered=[...validBatches];
+  if(f.mat_id)    filtered=filtered.filter(b=>b.mat_id==f.mat_id);
+  if(f.supplier)  filtered=filtered.filter(b=>b.supplier===f.supplier);
+  if(f.date_from) filtered=filtered.filter(b=>b.arrival>=f.date_from);
+  if(f.date_to)   filtered=filtered.filter(b=>b.arrival<=f.date_to);
+  filtered.sort((a,b)=>b.arrival.localeCompare(a.arrival));
+
+  if(!filtered.length) return html+emptyHTML('🛒','Нічого не знайдено');
+
+  html+=`<div class="card">`;
+  filtered.forEach(b=>{
+    const m=mats.find(x=>x.id==b.mat_id)||{name:'?'};
+    const isAdm = currentRole==='admin';
+    html+=`<div class="list-item" ${isAdm?`onclick="editBatch(${b.id})"`:'style="cursor:default"'}>
+      <div class="list-body">
+        <div class="list-name">${b.supplier}${isAdm?' <span style="font-size:11px;color:var(--muted)">✎</span>':''}</div>
+        <div class="list-sub">${m.name} · ${fmtDate(b.arrival)} · ${fmtKg(b.qty_init)}</div>
+      </div>
+      <div class="list-right"><div class="list-val">${fmt(b.price)}<span style="font-size:11px;font-weight:400"> грн/кг</span></div>
+        <div class="list-unit">${fmt(Number(b.qty_init)*Number(b.price))} грн</div></div>
+    </div>`;
+  });
+  const total=filtered.reduce((s,b)=>s+Number(b.qty_init)*Number(b.price),0);
+  html+=`<div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+    <span style="font-weight:700">Сума закупок</span>
+    <span style="font-weight:800;font-size:16px;color:var(--accent)">${fmt(total)} грн</span>
+  </div></div>`;
+  return html;
+}
+
+async function reportCost(){
+  const f=rFilters.cost;
+  const [orders,recipes,locations]=await Promise.all([
+    cached('orders',   ()=>DB.get('production_orders','status=eq.confirmed&order=production_date.desc')),
+    DB.get('recipes','is_active=eq.true&order=name.asc'),
+    DB.get('locations','is_active=eq.true&order=name.asc')
+  ]);
+  const locOpts=locations.map(l=>`<option value="${l.id}" ${f.loc_id==l.id?'selected':''}>${l.name}</option>`).join('');
+  const recOpts=recipes.map(r=>`<option value="${r.id}" ${f.recipe_id==r.id?'selected':''}>${r.name}</option>`).join('');
+
+  let html=`<div class="filter-bar">
+    <div class="ff-group"><label class="ff-label">Пташник</label>
+      <select class="ff-select" onchange="rFilters.cost.loc_id=this.value;renderReport('cost')"><option value="">Всі</option>${locOpts}</select></div>
+    <div class="ff-group"><label class="ff-label">Рецептура</label>
+      <select class="ff-select" onchange="rFilters.cost.recipe_id=this.value;renderReport('cost')"><option value="">Всі</option>${recOpts}</select></div>
+    <div class="ff-group"><label class="ff-label">Від</label>
+      <input type="date" class="ff-input" value="${f.date_from||''}" onchange="rFilters.cost.date_from=this.value;renderReport('cost')"></div>
+    <div class="ff-group"><label class="ff-label">До</label>
+      <input type="date" class="ff-input" value="${f.date_to||''}" onchange="rFilters.cost.date_to=this.value;renderReport('cost')"></div>
+  </div>`;
+
+  let filtered=[...orders];
+  if(f.loc_id)    filtered=filtered.filter(o=>o.location_id==f.loc_id);
+  if(f.recipe_id) filtered=filtered.filter(o=>o.recipe_id==f.recipe_id);
+  if(f.date_from) filtered=filtered.filter(o=>o.production_date>=f.date_from);
+  if(f.date_to)   filtered=filtered.filter(o=>o.production_date<=f.date_to);
+
+  if(!f.loc_id){
+    // Групуємо по пташниках з фактичних замовлень
+    const locIds = [...new Set(filtered.map(o=>o.location_id))];
+    if(locIds.length) {
+      html+=`<div class="section-title">По пташниках</div><div class="card" style="margin-bottom:14px">`;
+      locIds.forEach(lid=>{
+        const lo=filtered.filter(o=>o.location_id==lid);
+        const l=locations.find(x=>x.id==lid);
+        const lName = l ? l.name : `Пташник #${lid}`;
+        const tq=lo.reduce((s,o)=>s+Number(o.qty),0);
+        const tc=lo.reduce((s,o)=>s+Number(o.total_cost),0);
+        html+=`<div class="list-item" style="cursor:default">
+          <div class="list-icon blue">🐔</div>
+          <div class="list-body"><div class="list-name">${lName}</div><div class="list-sub">${lo.length} виробництв · ${fmtKg(tq)}</div></div>
+          <div class="list-right"><div class="list-val">${fmt(tc)}</div><div class="list-unit">${tq?fmt(tc/tq):0} грн/кг</div></div>
+        </div>`;
+      });
+      html+=`</div>`;
+    }
+  }
+  if(!filtered.length) return html+emptyHTML('📊','Нічого не знайдено');
+
+  html+=`<div class="section-title">Записи</div><div class="card">`;
+  filtered.forEach(o=>{
+    const r=recipes.find(x=>x.id==o.recipe_id);
+    const l=locations.find(x=>x.id==o.location_id);
+    const rName = r ? r.name : `Рецептура #${o.recipe_id}`;
+    const lName = l ? l.name : `Пташник #${o.location_id}`;
+    html+=`<div class="list-item" onclick="viewOrder(${o.id})">
+      <div class="list-body"><div class="list-name">${rName}</div><div class="list-sub">${lName} · ${fmtDate(o.production_date)}</div></div>
+      <div class="list-right"><div class="list-val">${fmt(o.total_cost)}</div><div class="list-unit">${fmt(o.cost_per_unit)} грн/кг · ${fmtKg(o.qty)}</div></div>
+    </div>`;
+  });
+  const totCost=filtered.reduce((s,o)=>s+Number(o.total_cost),0);
+  html+=`<div style="padding:12px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center">
+    <span style="font-weight:700">Загальна вартість</span>
+    <span style="font-weight:800;font-size:16px;color:var(--accent)">${fmt(totCost)} грн</span>
+  </div></div>`;
+  return html;
+}
+
+// ─────────────────────────────────────────
+// REPORT: СПОЖИВАННЯ СИРОВИНИ
+// ─────────────────────────────────────────
+async function reportConsumption(){
+  const f = rFilters.consumption || {};
+  rFilters.consumption = f;
+
+  const [mats, lines, orders] = await Promise.all([
+    cached('materials', () => DB.get('materials','is_active=eq.true')),
+    DB.get('consumption_lines','select=mat_id,qty,price,cost,production_order_id'),
+    cached('orders', () => DB.get('production_orders','status=eq.confirmed&select=id,production_date'))
+  ]);
+
+  // Будуємо map: order_id → дата
+  const orderDateMap = {};
+  orders.forEach(o => { orderDateMap[o.id] = o.production_date; });
+
+  const matOpts = mats.map(m =>
+    `<option value="${m.id}" ${f.mat_id==m.id?'selected':''}>${m.name}</option>`
+  ).join('');
+
+  let html = `<div class="filter-bar">
+    <div class="ff-group"><label class="ff-label">Сировина</label>
+      <select class="ff-select" onchange="rFilters.consumption.mat_id=this.value;renderReport('consumption')">
+        <option value="">Всі</option>${matOpts}
+      </select></div>
+    <div class="ff-group"><label class="ff-label">Від</label>
+      <input type="date" class="ff-input" value="${f.date_from||''}"
+        onchange="rFilters.consumption.date_from=this.value;renderReport('consumption')"></div>
+    <div class="ff-group"><label class="ff-label">До</label>
+      <input type="date" class="ff-input" value="${f.date_to||''}"
+        onchange="rFilters.consumption.date_to=this.value;renderReport('consumption')"></div>
+  </div>`;
+
+  // Фільтруємо рядки по даті виробництва
+  const filteredLines = lines.filter(ln => {
+    const d = orderDateMap[ln.production_order_id];
+    if (!d) return false;
+    if (f.date_from && d < f.date_from) return false;
+    if (f.date_to   && d > f.date_to)   return false;
+    if (f.mat_id && ln.mat_id != f.mat_id) return false;
+    return true;
+  });
+
+  if (!filteredLines.length) {
+    return html + emptyHTML('📊','Немає даних за обраний період');
+  }
+
+  // Агрегуємо по сировині
+  const byMat = {};
+  filteredLines.forEach(ln => {
+    if (!byMat[ln.mat_id]) byMat[ln.mat_id] = { qty: 0, cost: 0 };
+    byMat[ln.mat_id].qty  += Number(ln.qty);
+    byMat[ln.mat_id].cost += Number(ln.cost);
+  });
+
+  // Сортуємо по кількості спожитого
+  const sorted = Object.entries(byMat)
+    .sort((a,b) => b[1].qty - a[1].qty);
+
+  const totalQty  = sorted.reduce((s,[,v])=>s+v.qty, 0);
+  const totalCost = sorted.reduce((s,[,v])=>s+v.cost, 0);
+
+  html += `<div class="card">`;
+  sorted.forEach(([mat_id, v]) => {
+    const m = mats.find(x=>x.id==mat_id)||{name:`Сировина #${mat_id}`};
+    const pct = totalQty ? Math.round(v.qty/totalQty*100) : 0;
+    const avgPrice = v.qty > 0 ? v.cost/v.qty : 0;
+    html += `<div class="list-item" style="cursor:default">
+      <div class="list-body">
+        <div class="list-name">${m.name}</div>
+        <div class="list-sub">${fmt(avgPrice)} грн/кг · частка ${pct}%</div>
+        <div class="batch-progress" style="margin-top:6px">
+          <div class="batch-progress-fill" style="width:${pct}%"></div>
+        </div>
+      </div>
+      <div class="list-right">
+        <div class="list-val">${fmtKg(v.qty)}</div>
+        <div class="list-unit">${fmt(v.cost)} грн</div>
+      </div>
+    </div>`;
+  });
+
+  html += `<div style="padding:12px 16px;border-top:1px solid var(--border)">
+    <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+      <span style="font-size:12px;color:var(--muted)">Всього спожито</span>
+      <span style="font-weight:700">${fmtKg(totalQty)}</span>
+    </div>
+    <div style="display:flex;justify-content:space-between">
+      <span style="font-size:12px;color:var(--muted)">Загальна вартість</span>
+      <span style="font-weight:800;color:var(--accent)">${fmt(totalCost)} грн</span>
+    </div>
+  </div></div>`;
+
+  return html;
+}
+
+async function reportLogs(){
+  const logs=await supaFetch('action_logs?order=created_at.desc&limit=100');
+  if(!logs||!logs.length) return emptyHTML('📋','Немає записів у журналі');
+
+  const ACTION_LABELS={
+    login:'🔐 Вхід в систему', logout:'🚪 Вихід',
+    add_batch:'📦 Додано партію', edit_batch:'✏️ Змінено партію', delete_batch:'🗑️ Видалено партію',
+    production:'🏭 Виробництво', delete_order:'🗑️ Видалено виробництво',
+    add_recipe:'📋 Додано рецептуру', edit_recipe:'✏️ Змінено рецептуру', delete_recipe:'🗑️ Видалено рецептуру',
+    add_user:'👤 Додано користувача', edit_user:'✏️ Змінено користувача',
+  };
+
+  let html=`<div class="card">`;
+  logs.forEach(l=>{
+    const label=ACTION_LABELS[l.action]||l.action;
+    const details=l.details?Object.entries(l.details).filter(([k])=>!['recipe_id','loc_id'].includes(k)).map(([k,v])=>`${k}: ${typeof v==='number'?fmt(v):v}`).join(' · '):'';
+    html+=`<div class="log-item">
+      <div class="log-action">${label}</div>
+      <div class="log-meta">👤 ${l.user_name||'?'} · ${fmtDT(l.created_at)}${details?` · ${details}`:''}</div>
+    </div>`;
+  });
+  html+=`</div>`;
+  return html;
+}
+
+// ══════════════════════════════════════════
+// SETTINGS (admin only)
+// ══════════════════════════════════════════
+async function openSettings(){
+  if(currentRole!=='admin'){toast('Тільки для адміністратора','error');return;}
+  openModal('Налаштування','<div class="loading"><div class="spinner"></div></div>','');
+
+  try{
+    const [mats,locs,users]=await Promise.all([
+      DB.get('materials','is_active=eq.true'),
+      DB.get('locations','is_active=eq.true&order=name.asc'),
+      DB.get('users','is_active=eq.true&select=id,name,role')
+    ]);
+
+    document.getElementById('modal-body').innerHTML=`
+      <div class="section-title" style="margin-top:0">Користувачі</div>
+      <div class="card" style="margin-bottom:12px">
+        ${users.map(u=>`<div class="list-item" style="cursor:default">
+          <div class="list-icon ${u.role}" style="font-size:18px">${ROLE_ICONS[u.role]||'👤'}</div>
+          <div class="list-body"><div class="list-name">${u.name}</div><div class="list-sub">${ROLE_LABELS[u.role]||u.role}</div></div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm" onclick="editUser(${u.id})">✎</button>
+            ${u.id!==currentUser.id?`<button class="btn btn-danger btn-sm" onclick="deleteUser(${u.id})">✕</button>`:''}
+          </div>
+        </div>`).join('')}
+        <div style="padding:10px 16px"><button class="btn btn-secondary btn-sm" onclick="addUser()">+ Додати користувача</button></div>
+      </div>
+
+      <div class="section-title">Сировина</div>
+      <div class="card" style="margin-bottom:12px">
+        ${mats.map(m=>`<div class="list-item" style="cursor:default">
+          <div class="list-body"><div class="list-name">${m.name}</div><div class="list-sub">Поріг: ${m.min_stock_days} дн.</div></div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm" onclick="editMaterial(${m.id})">✎</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteMaterial(${m.id},'${m.name.replace(/'/g,"\\'")}')">✕</button>
+          </div>
+        </div>`).join('')}
+        <div style="padding:10px 16px"><button class="btn btn-secondary btn-sm" onclick="addMaterial()">+ Сировина</button></div>
+      </div>
+
+      <div class="section-title">Пташники</div>
+      <div class="card" style="margin-bottom:12px">
+        ${locs.map(l=>`<div class="list-item" style="cursor:default">
+          <div class="list-body"><div class="list-name">${l.name}</div><div class="list-sub">${l.daily_kg} кг/день</div></div>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-secondary btn-sm" onclick="editLocation(${l.id})">✎</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteLocation(${l.id},'${l.name.replace(/'/g,"\\'")}')">✕</button>
+          </div>
+        </div>`).join('')}
+        <div style="padding:10px 16px"><button class="btn btn-secondary btn-sm" onclick="addLocation()">+ Пташник</button></div>
+      </div>`;
+  }catch(e){ document.getElementById('modal-body').innerHTML=errorHTML(e); }
+}
+
+// USER MANAGEMENT
+function addUser(){
+  document.getElementById('modal-title').textContent='Новий користувач';
+  document.getElementById('modal-body').innerHTML=userForm();
+  document.getElementById('modal-footer').innerHTML=`<button class="btn btn-primary" onclick="saveUser()">Зберегти</button>`;
+}
+
+function editUser(id){
+  document.getElementById('modal-title').textContent='Редагувати користувача';
+  // fetch user data
+  supaFetch(`users?id=eq.${id}&select=id,name,role`).then(res=>{
+    const u=res[0];
+    document.getElementById('modal-body').innerHTML=userForm(u);
+    document.getElementById('modal-footer').innerHTML=`<button class="btn btn-primary" onclick="saveUser(${id})">Зберегти</button>`;
+  });
+}
+
+function userForm(u){
+  return `
+    <div class="form-group"><label class="form-label">Ім'я / Посада</label>
+      <input type="text" class="form-input" id="u-name" value="${u?u.name:''}" placeholder="Ім'я працівника"></div>
+    <div class="form-group"><label class="form-label">Роль</label>
+      <select class="form-select" id="u-role">
+        <option value="worker"  ${u&&u.role==='worker' ?'selected':''}>👷 Працівник</option>
+        <option value="manager" ${u&&u.role==='manager'?'selected':''}>🔧 Менеджер</option>
+        <option value="admin"   ${u&&u.role==='admin'  ?'selected':''}>👑 Адміністратор</option>
+      </select></div>
+    <div class="form-group"><label class="form-label">PIN-код (4 цифри)</label>
+      <input type="number" class="form-input" id="u-pin" placeholder="••••" maxlength="4"
+        ${u?'':'required'}>
+      ${u?'<div style="font-size:11px;color:var(--muted);margin-top:4px">Залиште порожнім щоб не змінювати</div>':''}
+    </div>`;
+}
+
+async function saveUser(editId){
+  const name=(document.getElementById('u-name').value||'').trim();
+  const role=document.getElementById('u-role').value;
+  const pin=(document.getElementById('u-pin').value||'').trim();
+
+  if(!name){toast('Введіть ім\'я','error');return;}
+  if(!editId&&!pin){toast('Введіть PIN','error');return;}
+  if(pin&&(pin.length!==4||!/^\d{4}$/.test(pin))){toast('PIN має бути 4 цифри','error');return;}
+
+  try{
+    const data={name,role};
+    if(pin) data.pin_hash=pin;
+
+    if(editId){
+      await DB.update('users',editId,data);
+      await logAction('edit_user','user',editId,{name,role});
+    } else {
+      const res=await DB.insert('users',{...data,is_active:true});
+      await logAction('add_user','user',res[0].id,{name,role});
+    }
+    closeModal();
+    toast(editId?'Користувача оновлено ✓':'Користувача додано ✓','success');
+  }catch(e){toast('Помилка збереження','error');console.error(e);}
+}
+
+async function deleteUser(id){
+  if(!confirm('Деактивувати користувача?'))return;
+  try{
+    await DB.update('users',id,{is_active:false});
+    await logAction('edit_user','user',id,{action:'deactivated'});
+    closeModal(); toast('Користувача деактивовано','warn');
+  }catch(e){toast('Помилка','error');}
+}
+
+// MATERIAL / LOCATION (simplified)
+function addMaterial(){
+  document.getElementById('modal-title').textContent='Нова сировина';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="form-group"><label class="form-label">Назва</label><input type="text" class="form-input" id="nm-name" placeholder="Кукурудза..."></div>
+    <div class="form-group"><label class="form-label">Мін. запас (дні)</label><input type="number" class="form-input" id="nm-days" value="3" min="1"></div>`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn btn-primary" onclick="saveMaterial()">Зберегти</button>`;
+}
+function editMaterial(id){
+  supaFetch(`materials?id=eq.${id}`).then(res=>{
+    const m=res[0];
+    document.getElementById('modal-title').textContent='Редагувати сировину';
+    document.getElementById('modal-body').innerHTML=`
+      <div class="form-group"><label class="form-label">Назва</label><input type="text" class="form-input" id="nm-name" value="${m.name}"></div>
+      <div class="form-group"><label class="form-label">Мін. запас (дні)</label><input type="number" class="form-input" id="nm-days" value="${m.min_stock_days}" min="1"></div>`;
+    document.getElementById('modal-footer').innerHTML=`<button class="btn btn-primary" onclick="saveMaterial(${id})">Зберегти</button>`;
+  });
+}
+async function saveMaterial(editId){
+  const name=document.getElementById('nm-name').value.trim();
+  const days=+document.getElementById('nm-days').value;
+  if(!name){toast('Введіть назву','error');return;}
+  try{
+    if(editId) await DB.update('materials',editId,{name,min_stock_days:days});
+    else await DB.insert('materials',{name,unit:'кг',min_stock_days:days});
+    invalidate('materials');closeModal();toast('Збережено ✓','success');
+  }catch(e){toast('Помилка','error');}
+}
+
+async function deleteMaterial(id, name){
+  if(!confirm(`Видалити сировину "${name}"?\nВсі партії цієї сировини також будуть приховані.`)) return;
+  try{
+    await DB.update('materials', id, {is_active: false});
+    await logAction('delete_material','material', id, {name});
+    invalidate('materials','batches');
+    openSettings(); // оновити налаштування
+    toast(`"${name}" видалено ✓`,'warn');
+  }catch(e){toast('Помилка видалення','error');console.error(e);}
+}
+
+function addLocation(){
+  document.getElementById('modal-title').textContent='Новий пташник';
+  document.getElementById('modal-body').innerHTML=`
+    <div class="form-group"><label class="form-label">Назва</label><input type="text" class="form-input" id="nl-name" placeholder="Пташник №4"></div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Код</label><input type="text" class="form-input" id="nl-code" placeholder="P4"></div>
+      <div class="form-group"><label class="form-label">кг/день</label><input type="number" class="form-input" id="nl-daily" value="400" min="0"></div>
+    </div>`;
+  document.getElementById('modal-footer').innerHTML=`<button class="btn btn-primary" onclick="saveLocation()">Зберегти</button>`;
+}
+function editLocation(id){
+  supaFetch(`locations?id=eq.${id}`).then(res=>{
+    const l=res[0];
+    document.getElementById('modal-title').textContent='Редагувати пташник';
+    document.getElementById('modal-body').innerHTML=`
+      <div class="form-group"><label class="form-label">Назва</label><input type="text" class="form-input" id="nl-name" value="${l.name}"></div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Код</label><input type="text" class="form-input" id="nl-code" value="${l.code||''}"></div>
+        <div class="form-group"><label class="form-label">кг/день</label><input type="number" class="form-input" id="nl-daily" value="${l.daily_kg}" min="0"></div>
+      </div>`;
+    document.getElementById('modal-footer').innerHTML=`<button class="btn btn-primary" onclick="saveLocation(${id})">Зберегти</button>`;
+  });
+}
+async function saveLocation(editId){
+  const name=document.getElementById('nl-name').value.trim();
+  const code=document.getElementById('nl-code').value.trim();
+  const daily_kg=+document.getElementById('nl-daily').value;
+  if(!name){toast('Введіть назву','error');return;}
+  try{
+    if(editId) await DB.update('locations',editId,{name,code,daily_kg});
+    else await DB.insert('locations',{name,code,daily_kg,is_active:true});
+    invalidate('locations');closeModal();toast('Збережено ✓','success');
+  }catch(e){toast('Помилка','error');}
+}
+
+async function deleteLocation(id, name){
+  if(!confirm(`Видалити пташник "${name}"?`)) return;
+  try{
+    await DB.update('locations', id, {is_active: false});
+    await logAction('delete_location','location', id, {name});
+    invalidate('locations');
+    openSettings();
+    toast(`"${name}" видалено ✓`,'warn');
+  }catch(e){toast('Помилка видалення','error');console.error(e);}
+}
+
+// ══════════════════════════════════════════
+// MODAL + TOAST HELPERS
+// ══════════════════════════════════════════
+function openModal(title,body,footer){
+  document.getElementById('modal-title').textContent=title;
+  document.getElementById('modal-body').innerHTML=body;
+  document.getElementById('modal-footer').innerHTML=footer||'';
+  document.getElementById('modal-overlay').classList.add('open');
+}
+function closeModal(e){
+  if(e&&e.target!==document.getElementById('modal-overlay'))return;
+  document.getElementById('modal-overlay').classList.remove('open');
+}
+function toast(msg,type='success'){
+  const el=document.createElement('div');
+  el.className=`toast toast-${type}`;
+  el.textContent=msg;
+  document.getElementById('toast-container').appendChild(el);
+  setTimeout(()=>el.remove(),2800);
+}
+
+// UI helpers
+const loadingHTML = () => `<div class="loading"><div class="spinner"></div> Завантаження...</div>`;
+const emptyHTML = (icon,msg) => `<div class="empty-state"><div class="icon">${icon}</div><p>${msg}</p></div>`;
+const errorHTML = (e) => `<div class="alert alert-danger"><span class="alert-icon">⚠️</span><span>Помилка: ${e.message}</span></div>`;
+const alertEl = (type,icon,msg) => `<div class="alert alert-${type}"><span class="alert-icon">${icon}</span><span>${msg}</span></div>`;
+function showError(elId,e){ document.getElementById(elId).innerHTML=errorHTML(e); }
+
+// ══════════════════════════════════════════
+// SAFE AREA / BROWSER CHROME FIX
+// ══════════════════════════════════════════
+function fixBottomOffset() {
+  // Визначаємо висоту браузерного chrome (адресний рядок знизу)
+  // window.innerHeight = видима область, screen.height = весь екран
+  // Різниця між visualViewport.height і window.innerHeight дає нижню панель браузера
+  const setOffset = () => {
+    let extra = 0;
+
+    // Метод 1: visualViewport (найточніший)
+    if (window.visualViewport) {
+      const vv = window.visualViewport;
+      // Різниця між висотою viewport і видимою областю
+      extra = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    }
+
+    // Метод 2: env(safe-area-inset-bottom) через inline style trick
+    const testEl = document.createElement('div');
+    testEl.style.cssText = 'position:fixed;bottom:0;height:env(safe-area-inset-bottom,0px);pointer-events:none;';
+    document.body.appendChild(testEl);
+    const safeArea = testEl.offsetHeight || 0;
+    document.body.removeChild(testEl);
+
+    // Беремо максимум з обох методів + додаємо 4px запасу
+    extra = Math.max(extra, safeArea);
+
+    // Мінімум 8px на Android (браузерна панель)
+    // Якщо є нижня панель навігації Android — додаємо більше
+    if (/Android/i.test(navigator.userAgent) && extra < 8) extra = 8;
+
+    document.documentElement.style.setProperty('--extra-bottom', extra + 'px');
+  };
+
+  setOffset();
+  window.addEventListener('resize', setOffset);
+  if (window.visualViewport) window.visualViewport.addEventListener('resize', setOffset);
+  // Повторно через секунду після завантаження (браузер міг ще не відрендерити UI)
+  setTimeout(setOffset, 500);
+  setTimeout(setOffset, 1500);
+}
+
+// ══════════════════════════════════════════
+// THEME
+// ══════════════════════════════════════════
+function toggleTheme() {
+  const isLight = document.body.classList.toggle('light');
+  localStorage.setItem('crm_theme', isLight ? 'light' : 'dark');
+  document.getElementById('btn-theme').textContent = isLight ? '🌙' : '☀️';
+  document.querySelector('meta[name="theme-color"]').content = isLight ? '#ffffff' : '#0f1923';
+}
+
+function applyStoredTheme() {
+  const theme = localStorage.getItem('crm_theme');
+  if (theme === 'light') {
+    document.body.classList.add('light');
+    const btn = document.getElementById('btn-theme');
+    if (btn) btn.textContent = '🌙';
+    document.querySelector('meta[name="theme-color"]').content = '#ffffff';
+  }
+}
+
+// ══════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════
+document.getElementById('app').style.display='none';
+applyStoredTheme();
+
+(async()=>{
+  // Try restore session
+  const savedId=sessionStorage.getItem('crm_user_id');
+  if(savedId){
+    try{
+      const res=await supaFetch(`users?id=eq.${savedId}&select=id,name,role&is_active=eq.true`);
+      if(res&&res[0]) { await loginAs(res[0]); return; }
+    }catch(e){}
+  }
+  // Load user list for login
+  loadUsers();
+})();
+</script>
+</body>
+</html>
